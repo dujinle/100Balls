@@ -1,0 +1,19 @@
+var GlobalData = {
+	RigidBodyTag:{
+		ball:0,
+		cup:1,
+		floor:2,
+		cupLine:3,
+		rotateRight:4,
+		rotateLeft:5
+	},
+	GameRunTime:{
+		FallBallNum:0,
+		BallUnFallNum:0
+	},
+	BallTotalNum:100,
+	BallGravityScale:10,
+	BallPreFall:30,
+	BallRowArray:[8,9,10,11,12,12,11,10,9,8],
+	CupMoveDir:'left'
+}
