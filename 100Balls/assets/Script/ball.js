@@ -3,6 +3,7 @@ cc.Class({
 
     properties: {
 		level:0,
+		color:null,
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -15,14 +16,25 @@ cc.Class({
 		this.node.getComponent(cc.RigidBody).gravityScale = GlobalData.BallGravityScale;
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 		this.node.getComponent(cc.PhysicsCircleCollider).enabled = false;
+		this.setColor(this.level);
 	},
 	setRigidBodyType(type){
 		this.node.getComponent(cc.RigidBody).type = type;
 		this.node.getComponent(cc.PhysicsCircleCollider).enabled = true;
 		//this.node.getComponent(cc.RigidBody).type = type;
 	},
+	setColor(level){
+		this.color = GlobalData.BallColor[level];
+		var colorMat = GlobalData.BallColorDic[this.color];
+		this.node.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
+		//理论上不会产生 以防万一
+		if(otherCollider.tag == GlobalData.RigidBodyTag.startLeft || otherCollider.tag == GlobalData.RigidBodyTag.startRight){
+			contact.disabled = true;
+		}
+		//console.log(otherCollider.tag);
 		//console.log('onBeginContact',otherCollider.node.getPosition(),selfCollider.node.getPosition());
     },
 
@@ -53,9 +65,10 @@ cc.Class({
     update (dt) {
 		if(this.fallFlag == true && this.updateFlag == false){
 			this.updateFlag = true;
-			GlobalData.GameRunTime.FallBallNum -= 1;
+			
 			this.EventCustom.setUserData({
-				type:'FallLine'
+				type:'FallLine',
+				uuid:this.node.uuid
 			});
 			this.node.dispatchEvent(this.EventCustom);
 		}

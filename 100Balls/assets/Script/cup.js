@@ -2,112 +2,53 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-		radian:30,
 		speed:10,
 		width:20,
 		height:20,
 		balls:null,
+		myId:0,
+		moveDir:0,
+		circleNum:0,
+		level:0,
+		color:null,
+		innerNode:cc.Node,
     },
-
-
     onLoad () {
 		console.log("creat cup start");
 		this.balls = {};
-		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-		this.node.getComponent(cc.RigidBody).gravityScale = 0;
+		this.level = 0;
+		this.totalScore = 0;
+		this.initPos = this.node.getPosition();
+		this.color = GlobalData.CupColor[this.level];
+		var colorMat = GlobalData.CupColorDic[this.color];
+		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
+		//this.node.getComponent(cc.RigidBody).gravityScale = 10;
 		//杯子翻转标志
-		this.rotateFlag = false;
+		this.cupScoreDic = {};
+		this.cupScoreNumDic = {};
+		this.rotateFlag = null;
 	},
-	startMove(width,height,speed,radian){
+	startMove(width,height,speed,addSpeed){
 		this.width = width;
 		this.height = height;
 		this.speed = speed;
-		this.radian = radian;
-		this.schedule(this.moveCircle, 0.01);
-	},
-    moveCircle (dt) {
-		//console.log(dt);
-		var moveStep = this.speed * dt;
-		var pos = this.node.getPosition();
-		if(this.lastPos == null){
-			//第一次移动确定移动方向之后移动
-			var left = Math.abs(pos.x) + moveStep - this.width/2;
-			if(left > 0){
-				this.node.x = GlobalData.CupMoveDir == 'right'?this.width/2: -this.width/2;
-				this.node.y = this.node.y - left;
-			}else{
-				this.node.x = GlobalData.CupMoveDir == 'right'?this.node.x + moveStep: this.node.x - moveStep;
-			}
-			this.lastPos = pos;
+		this.addSpeed = addSpeed;
+		if(this.myId == 0){
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+			this.node.getComponent(cc.RigidBody).gravityScale = 10;	
+		}else if(this.myId == 1){
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+			this.node.getComponent(cc.RigidBody).gravityScale = 10;
+		}
+		if(GlobalData.CupMoveDir == 'right'){
+			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
 		}else{
-			//连续移动中判断我的移动方向 左右上下
-			var isRight = pos.x - this.lastPos.x;
-			var isUp = pos.y - this.lastPos.y;
-			if(isRight != 0){
-				var left = isRight > 0? (Math.abs(pos.x + moveStep) - this.width/2) : (Math.abs(pos.x - moveStep) - this.width/2);
-				if(left > 0){
-					this.node.x = isRight > 0 ? this.width/2:-this.width/2;
-					if(GlobalData.CupMoveDir == 'right'){
-						this.node.y = isRight > 0?this.node.y - left:this.node.y + left;
-					}else{
-						this.node.y = isRight > 0?this.node.y + left:this.node.y - left;
-					}
-				}else{
-					this.node.x = isRight > 0?this.node.x + moveStep: this.node.x - moveStep;
-				}
-			}
-			else if(isUp != 0){
-				var left = isUp > 0 ? (Math.abs(pos.y + moveStep) - this.height/2) : Math.abs(pos.y - moveStep) - this.height/2;
-				if(left > 0){
-					this.node.y = isUp > 0?this.height/2: -this.height/2;
-					if(GlobalData.CupMoveDir == 'right'){
-						this.node.x = isUp > 0?this.node.x + left:this.node.x - left;
-					}else{
-						this.node.x = isUp > 0?this.node.x - left:this.node.x + left;
-					}
-				}else{
-					this.node.y = isUp > 0?this.node.y + moveStep: this.node.y - moveStep;
-				}
-			}
-			this.lastPos = pos;
+			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
 		}
-		//如果杯子运动到底部则关闭瓶盖
-		if(this.node.y == -this.height/2){
-			var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
-			for(var i = 0;i < physicsChainColliders.length;i++){
-				if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
-					physicsChainColliders[i].enabled = true;
-					break;
-				}
-			}
-		}
-		if(this.rotateFlag != null && this.rotateFlag.isDone == false){
-			return;
-		}
-		//如果有球体进入杯子则进行翻转动作
-		if(this.getBallsLength() > 0){
-			//打开瓶盖
-			var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
-			for(var i = 0;i < physicsChainColliders.length;i++){
-				if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
-					physicsChainColliders[i].enabled = false;
-					break;
-				}
-			}
-			if(GlobalData.CupMoveDir == 'right'){
-				var size = this.node.getContentSize();
-				if(this.node.y == this.height/2 && (this.node.x < 0)&& (this.node.x >= -this.speed)){
-					this.rotateFlag = this.node.runAction(cc.rotateBy(2, 360));
-					this.clearBalls();
-				}
-			}else{
-				var size = this.node.getContentSize();
-				if(this.node.y == this.height/2 && (this.node.x > 0 && this.node.x <= this.speed)){
-					this.rotateFlag = this.node.runAction(cc.rotateBy(2, -360));
-					this.clearBalls();
-				}
-			}
-		}
+		this.moveDir = 1;
+		this.circleNum = 0;
 	},
 	getBallsLength(){
 		var length = 0;
@@ -117,10 +58,13 @@ cc.Class({
 		return length;
 	},
 	clearBalls(){
-		for(let key in this.balls){
-			let otherCollider = this.balls[key];
-			//otherCollider.node.getComponent(cc.RigidBody).gravityScale = 2;
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			GlobalData.GameRunTime.FallBallNum += 1;
+			GlobalData.GameRunTime.CupBallsNum[ball.uuid] = ball;
 		}
+		this.cupScoreDic = {};
+		this.cupScoreNumDic = {};
 		this.balls = {};
 	},
 	getXY(width,height,radian){
@@ -149,11 +93,88 @@ cc.Class({
 	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
-		//console.log('onBeginContact');
+
 		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
+		var self = this;
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
 			this.balls[otherCollider.node.uuid] = otherCollider;
+			this.setCupScoreLabel(otherCollider.node);
 			contact.disabled = true;
+			return;
+		}
+		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cup){
+			return;
+		}
+		if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
+			//contact.disabled = true;
+			var destroyFunc = cc.callFunc(function(){
+				self.EventCustom.setUserData({
+					type:'CupRemove'
+				});
+				self.node.dispatchEvent(self.EventCustom);
+				self.node.removeFromParent();
+				self.node.destroy();
+			},this);
+			if(GlobalData.CupMoveDir == 'left'){
+				this.node.runAction(cc.sequence(cc.rotateBy(0.2,30),destroyFunc));
+			}else{
+				this.node.runAction(cc.sequence(cc.rotateBy(0.2,-30),destroyFunc));
+			}
+			return;
+		}
+		if(otherCollider.tag == GlobalData.RigidBodyTag.startLeft || otherCollider.tag == GlobalData.RigidBodyTag.startRight){
+			contact.disabled = true;
+			if(GlobalData.CupMoveDir == 'right' && otherCollider.tag == GlobalData.RigidBodyTag.startLeft){
+				if(this.rotateFlag != null && this.rotateFlag.isDone() == false){
+					return;
+				}
+				console.log('onBeginContact touch rotate right');
+				//打开瓶盖
+				var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
+				for(var i = 0;i < physicsChainColliders.length;i++){
+					if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
+						physicsChainColliders[i].enabled = false;
+						break;
+					}
+				}
+				var activeEnd = cc.callFunc(function(){
+					for(var i = 0;i < physicsChainColliders.length;i++){
+						if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
+							physicsChainColliders[i].enabled = true;
+							break;
+						}
+					}
+				},this);
+				this.rotateFlag = this.node.runAction(cc.sequence(cc.rotateBy(2, 360),activeEnd));
+				this.clearBalls();
+				this.updateCircleNum();
+			}
+			if(GlobalData.CupMoveDir == 'left' && otherCollider.tag == GlobalData.RigidBodyTag.startRight){
+				if(this.rotateFlag != null && this.rotateFlag.isDone() == false){
+					return;
+				}
+				console.log('onBeginContact touch rotate left');
+				//打开瓶盖
+				var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
+				for(var i = 0;i < physicsChainColliders.length;i++){
+					if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
+						physicsChainColliders[i].enabled = false;
+						break;
+					}
+				}
+				var activeEnd = cc.callFunc(function(){
+					for(var i = 0;i < physicsChainColliders.length;i++){
+						if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
+							physicsChainColliders[i].enabled = true;
+							break;
+						}
+					}
+				},this);
+				this.rotateFlag = this.node.runAction(cc.sequence(cc.rotateBy(2, -360),activeEnd));
+				this.clearBalls();
+				this.updateCircleNum();
+			}
+			return;
 		}
 		//console.log('onBeginContact');
     },
@@ -164,11 +185,7 @@ cc.Class({
 
     // 每次将要处理碰撞体接触逻辑时被调用
     onPreSolve: function (contact, selfCollider, otherCollider) {
-		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
-		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
-			this.balls[otherCollider.node.uuid] = otherCollider;
-			contact.disabled = true;
-		}
+		
     },
 
     // 每次处理完碰撞体接触逻辑时被调用
@@ -181,14 +198,129 @@ cc.Class({
 			}
 		}
     },
-	update(dt){
-		//球体 与 杯子开始接触 避免发生碰撞效果 
-		/*
-		if(this.touchFlag == 1){
-			console.log('球体与杯子发生碰撞时......');
-			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-			this.touchFlag = 0;
+	setCupScoreLabel(ballNode){
+		var self = this;
+		var ballCom = ballNode.getComponent('ball');
+		var size = this.node.getContentSize();
+		if(this.cupScoreDic[ballCom.color] == null){
+			var scoreLabel = cc.instantiate(GlobalData.assets['CupScore']);
+			var colorMat = GlobalData.BallColorDic[ballCom.color];
+			scoreLabel.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+			var scoreSize = scoreLabel.getContentSize();
+			this.cupScoreDic[ballCom.color] = scoreLabel;
+			this.node.addChild(scoreLabel);
+			scoreLabel.setPosition(cc.p(0,size.height/2 + scoreSize.height/2 + 10));
+			this.cupScoreNumDic[ballCom.color] = 0;
 		}
-		*/
+		var score = GlobalData.ScoreLevel[ballCom.level] > GlobalData.ScoreLevel[this.level] ? GlobalData.ScoreLevel[ballCom.level]:GlobalData.ScoreLevel[this.level];
+		this.cupScoreNumDic[ballCom.color] += score;
+		this.totalScore += score;
+		this.cupScoreDic[ballCom.color].getComponent(cc.Label).string = '+' + this.cupScoreNumDic[ballCom.color];
+		this.EventCustom.setUserData({
+			type:'UpdateScore',
+			score:score
+		});
+		this.node.dispatchEvent(this.EventCustom);
+		this.cupScoreDic[ballCom.color].runAction(cc.sequence(cc.fadeOut(1.5),cc.callFunc(function(){
+			this.cupScoreDic[ballCom.color].removeFromParent();
+			this.cupScoreDic[ballCom.color].destroy();
+			this.cupScoreDic[ballCom.color] = null;
+		},this)));
+	},
+	updateCircleNum(){
+		this.circleNum += 1;
+		if(this.circleNum > GlobalData.GameRunTime.CircleLevel){
+			GlobalData.GameRunTime.CircleLevel += 1;
+			this.EventCustom.setUserData({
+				type:'UpdateCircle'
+			});
+			this.node.dispatchEvent(this.EventCustom);
+		}
+	},
+	update(dt){
+		//杯子运动轨迹控制		
+		this.node.getComponent(cc.RigidBody).syncPosition();
+		if(GlobalData.CupMoveDir == 'right'){
+			if(this.node.x >= this.width/2 && this.moveDir == 1){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+				this.moveDir = 2;
+			}
+			//如果是第二个杯子则提前控制减速
+			if(this.moveDir == 2 && this.node.y <= 0 && this.myId == 1){
+				this.addSpeed = this.speed;
+				this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+				this.node.getComponent(cc.RigidBody).linearDamping = 0;
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}
+			var size = this.node.getContentSize();
+			if(this.moveDir == 2 && this.node.y <= (size.height - this.height/2) && this.myId == 0){
+				this.addSpeed = this.speed;
+				this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}
+			
+			if(this.moveDir == 2 && this.node.y <= -this.height/2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
+				this.moveDir = 3;
+			}
+			if(this.moveDir == 3 && this.node.x <= -this.width/2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,this.addSpeed);
+				this.moveDir = 4;
+			}
+			if(this.moveDir == 4 && this.node.y >= this.height/2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
+				this.moveDir = 1;
+			}
+		}
+		else{
+			if(this.node.x <= -this.width/2 && this.moveDir == 1){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+				this.moveDir = 2;
+			}
+			//如果是第二个杯子则提前控制减速
+			if(this.moveDir == 2 && this.node.y <= 0 && this.myId == 1){
+				this.addSpeed = this.speed;
+				this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+				this.node.getComponent(cc.RigidBody).linearDamping = 0;
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}
+			var size = this.node.getContentSize();
+			if(this.moveDir == 2 && this.node.y <= (size.height - this.height/2) && this.myId == 0){
+				this.addSpeed = this.speed;
+				this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}
+			
+			if(this.moveDir == 2 && this.node.y <= -this.height/2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
+				this.moveDir = 3;
+			}
+			if(this.moveDir == 3 && this.node.x >= this.width/2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,this.addSpeed);
+				this.moveDir = 4;
+			}
+			if(this.moveDir == 4 && this.node.y >= this.height/2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
+				this.moveDir = 1;
+			}
+		}
+		
+		if(this.getBallsLength() <= 0){
+			//如果没有接住球体则需要销毁
+			var size = this.node.getContentSize();
+			if(GlobalData.CupMoveDir == 'right'){
+				if(this.node.y >= (size.height - this.height/2) && (this.node.x + this.width/2 <= 0) && this.moveDir == 4){
+					this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+					this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+					this.node.getComponent(cc.RigidBody).gravityScale = 10;
+				}
+			}else{
+				if(this.node.y >= (size.height - this.height/2) && (this.node.x - this.width/2 >= 0) && this.moveDir == 4){
+					this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+					this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+					this.node.getComponent(cc.RigidBody).gravityScale = 10;
+				}
+			}
+		}
 	}
 });

@@ -292,11 +292,18 @@
       "__id__": 1
     },
     "_enabled": true,
-    "radian": 30,
     "speed": 10,
     "width": 20,
     "height": 20,
-    "balls": null
+    "balls": null,
+    "myId": 0,
+    "moveDir": 0,
+    "circleNum": 0,
+    "level": 0,
+    "color": null,
+    "innerNode": {
+      "__id__": 2
+    }
   },
   {
     "__type__": "cc.PhysicsChainCollider",
