@@ -1,3 +1,4 @@
+var util = require('util');
 cc.Class({
     extends: cc.Component,
 
@@ -7,12 +8,12 @@ cc.Class({
 		balls:cc.Node,
 		openNode:cc.Node,
 		closeNode:cc.Node,
-		fallLevel:0,
 		startButton:cc.Node,
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
 		startGameBoard:cc.Node,
 		mainGameBoard:cc.Node,
+		cupSpeed:0,
     },
 
     onLoad () {
@@ -40,7 +41,7 @@ cc.Class({
 		this.node.on("BallFallEvent",this.BallFallEvent,this);
 		this.mainGameBoard.active = false;
 		this.startButton.getComponent(cc.Button).interactable = false;
-		
+		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
 	},
 	loadDataSync(){
 		var self = this;
@@ -74,11 +75,11 @@ cc.Class({
 	},
 	enterGame(){
 		//准备球儿数量
-		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallTotalNum;
+		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallConfig.BallTotalNum;
 		//清除数据
 		GlobalData.GameRunTime.FallBallNum = 0;
 		GlobalData.GameRunTime.TotalScore = 0;
-		GlobalData.GameRunTime.CupAbledNum = GlobalData.CupCreatNum;
+		GlobalData.GameRunTime.CupAbledNum = GlobalData.CupConfig.CupCreatNum;
 		this.scoreLabel.getComponent(cc.Label).string = 0;
 		this.levelLabel.getComponent(cc.Label).string = 0;
 		this.initBalls();
@@ -87,29 +88,29 @@ cc.Class({
 	},
 	initBalls(){
 		for(var i = 0;i < 10;i++){
-			for(var j = 0;j < GlobalData.BallRowArray[i];j++){
+			for(var j = 0;j < GlobalData.BallConfig.BallRowArray[i];j++){
 				var ball = cc.instantiate(GlobalData.assets['ball']);
 				this.balls.addChild(ball);
 				let ylevel = 5 - i;
 				var size = ball.getContentSize();
 				var yy = (size.height + 3) * ylevel - size.height/2;
-				let xlevel = GlobalData.BallRowArray[i]/2 - j;
+				let xlevel = GlobalData.BallConfig.BallRowArray[i]/2 - j;
 				var xx = (size.width + 3) * xlevel - size.width/2;
 				ball.setPosition(cc.p(xx,yy));
 			}
 		}
 	},
 	initCups(deep){
-		if(deep >= GlobalData.CupCreatNum){
+		if(deep >= GlobalData.CupConfig.CupCreatNum){
 			return;
 		}
 		var self = this;
 		var trickSize = this.trickNode.getContentSize();
-		var tt = trickSize.height/2 / GlobalData.CupMoveSpeed;
+		var tt = trickSize.height/2 / this.cupSpeed;
 		var callBack = cc.callFunc(function(){
 			var cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
 			self.trickNode.addChild(cupNode);
-			if(GlobalData.CupMoveDir == 'right'){
+			if(GlobalData.CupConfig.CupMoveDir == 'right'){
 				var pos = cupNode.getComponent('cup').getXY(trickSize.width,trickSize.height,30);
 				cupNode.setPosition(pos);
 			}else{
@@ -120,11 +121,11 @@ cc.Class({
 			cupNode.getComponent('cup').myId = deep;
 				
 			if(deep == 0){
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,GlobalData.CupMoveSpeed,GlobalData.CupMoveASpeed);
+				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed);
 			}else if(deep == 1){
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,GlobalData.CupMoveSpeed,GlobalData.CupMoveASpeed/4);
+				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed/4);
 			}else{
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,GlobalData.CupMoveSpeed,GlobalData.CupMoveSpeed);
+				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,self.cupSpeed);
 			}
 			self.initCups(deep + 1);
 		},this);
@@ -161,11 +162,45 @@ cc.Class({
 			this.scoreLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.TotalScore;
 		}else if(data.type == 'UpdateCircle'){
 			this.levelLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.CircleLevel;
+			//如果球体升级则进行颜色变化
+			var self = this;
+			var trickNodeSize = this.trickNode.getContentSize();
+			var time = (trickNodeSize.width/2 + 100)/this.cupSpeed * 1000;
+			if(GlobalData.GameRunTime.CircleLevel % GlobalData.BallConfig.BallUpLevel == 0){
+				setTimeout(function(){
+					var key = util.getRandomIndexForArray(Object.keys(GlobalData.GameRunTime.CupBallsNum));
+					if(key != -1){
+						var ballCom = GlobalData.GameRunTime.CupBallsNum[key].getComponent('ball');
+						if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
+							ballCom.setColor(ballCom.level + 1);
+						}
+					}
+				},time);
+			}
+			if(GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel){
+				setTimeout(function(){
+					var UpLevelIsValid = new Array();
+					for(var i = 0;i < self.trickNode.children.length;i++){
+						var cup = self.trickNode.children[i];
+						var cupCom = cup.getComponent('cup');
+						if(cupCom.UpLevelIsValid()){
+							UpLevelIsValid.push(cup);
+						}
+					}
+					var key = util.getRandomIndexForArray(UpLevelIsValid);
+					if(key != -1){
+						var cupCom = UpLevelIsValid[key].getComponent('cup');
+						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1))){
+							cupCom.setColor(cupCom.level + 1);
+						}
+					}
+				},time);
+			}
 		}
 	},
 	initFallBalls(){
 		var length = this.balls.children.length;
-		for(var i = 0;i < GlobalData.BallPreFall;i++){
+		for(var i = 0;i < GlobalData.BallConfig.BallPreFall;i++){
 			var ball = this.balls.children[--length];
 			ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic);
 			GlobalData.GameRunTime.FallBallNum += 1;

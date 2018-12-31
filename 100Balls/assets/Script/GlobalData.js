@@ -17,31 +17,37 @@ GlobalData = {
 		TotalScore:0,
 		CircleLevel:0
 	},
-	BallColor:['Yellow','Green','Blue','Violet','Orange','Red'],
-	BallColorDic:{
-		Yellow:[255,255,0],
-		Green:[0,128,0],
-		Blue:[0,0,255],
-		Violet:[128,0,128],
-		Orange:[255,165,0],
-		Red:[255,0,0]
+	CupConfig:{
+		CupColor:['White','Green','Blue','Violet','Orange','Red'],
+		CupColorDic:{
+			White:[255,255,255],
+			Green:[0,128,0],
+			Blue:[0,0,255],
+			Violet:[128,0,128],
+			Orange:[255,165,0],
+			Red:[255,0,0]
+		},
+		CupCreatNum:7,
+		CupMoveSpeed:100,
+		CupMoveASpeed:1000,
+		CupMoveDir:'right',
+		CupUpLevel:3
 	},
-	CupColor:['White','Green','Blue','Violet','Orange','Red'],
-	CupColorDic:{
-		White:[255,255,255],
-		Green:[0,128,0],
-		Blue:[0,0,255],
-		Violet:[128,0,128],
-		Orange:[255,165,0],
-		Red:[255,0,0]
+	BallConfig:{
+		BallColor:['Yellow','Green','Blue','Violet','Orange','Red'],
+		BallColorDic:{
+			Yellow:[255,255,0],
+			Green:[0,128,0],
+			Blue:[0,0,255],
+			Violet:[128,0,128],
+			Orange:[255,165,0],
+			Red:[255,0,0]
+		},
+		BallUpLevel:1,
+		BallTotalNum:100,
+		BallGravityScale:10,
+		BallPreFall:30,
+		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
 	},
-	ScoreLevel:[1,2,3,4,5,6],
-	CupCreatNum:7,
-	BallTotalNum:100,
-	BallGravityScale:10,
-	BallPreFall:30,
-	BallRowArray:[8,9,10,11,12,12,11,10,9,8],
-	CupMoveSpeed:100,
-	CupMoveASpeed:1000,
-	CupMoveDir:'right'
+	ScoreLevel:[1,2,3,4,5,6]
 };

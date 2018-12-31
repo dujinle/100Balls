@@ -13,7 +13,7 @@ cc.Class({
 		this.fallFlag = false;
 		this.updateFlag = false;
 		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-		this.node.getComponent(cc.RigidBody).gravityScale = GlobalData.BallGravityScale;
+		this.node.getComponent(cc.RigidBody).gravityScale = GlobalData.BallConfig.BallGravityScale;
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 		this.node.getComponent(cc.PhysicsCircleCollider).enabled = false;
 		this.setColor(this.level);
@@ -24,8 +24,9 @@ cc.Class({
 		//this.node.getComponent(cc.RigidBody).type = type;
 	},
 	setColor(level){
-		this.color = GlobalData.BallColor[level];
-		var colorMat = GlobalData.BallColorDic[this.color];
+		this.level = level;
+		this.color = GlobalData.BallConfig.BallColor[level];
+		var colorMat = GlobalData.BallConfig.BallColorDic[this.color];
 		this.node.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
 	// 只在两个碰撞体开始接触时被调用一次
@@ -49,10 +50,12 @@ cc.Class({
     // 每次处理完碰撞体接触逻辑时被调用
     onPostSolve: function (contact, selfCollider, otherCollider) {
 		if(this.fallFlag == false){
+			/*
 			if(otherCollider.tag == GlobalData.RigidBodyTag.cup){
 				this.fallFlag = true;
 			}
-			else if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
+			*/
+			if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
 				this.fallFlag = true;
 				var destroyFunc = cc.callFunc(function(){
 					this.node.removeFromParent();

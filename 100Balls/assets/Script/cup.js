@@ -19,9 +19,7 @@ cc.Class({
 		this.level = 0;
 		this.totalScore = 0;
 		this.initPos = this.node.getPosition();
-		this.color = GlobalData.CupColor[this.level];
-		var colorMat = GlobalData.CupColorDic[this.color];
-		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+		this.setColor(this.level);
 		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 		//this.node.getComponent(cc.RigidBody).gravityScale = 10;
@@ -29,6 +27,12 @@ cc.Class({
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
 		this.rotateFlag = null;
+	},
+	setColor(level){
+		this.level = level;
+		this.color = GlobalData.CupConfig.CupColor[this.level];
+		var colorMat = GlobalData.CupConfig.CupColorDic[this.color];
+		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
 	startMove(width,height,speed,addSpeed){
 		this.width = width;
@@ -42,7 +46,7 @@ cc.Class({
 			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 			this.node.getComponent(cc.RigidBody).gravityScale = 10;
 		}
-		if(GlobalData.CupMoveDir == 'right'){
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
 			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
 		}else{
 			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
@@ -56,6 +60,14 @@ cc.Class({
 			length += 1;
 		}
 		return length;
+	},
+	UpLevelIsValid(){
+		if(GlobalData.CupConfig.CupMoveDir == 'right' && this.node.x >= this.width/2){
+			return true;
+		}else if(GlobalData.CupConfig.CupMoveDir == 'left' && this.node.x <= -this.width/2){
+			return true;
+		}
+		return false;
 	},
 	clearBalls(){
 		for(var key in this.balls){
@@ -97,7 +109,7 @@ cc.Class({
 		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
 		var self = this;
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
-			this.balls[otherCollider.node.uuid] = otherCollider;
+			this.balls[otherCollider.node.uuid] = otherCollider.node;
 			this.setCupScoreLabel(otherCollider.node);
 			contact.disabled = true;
 			return;
@@ -115,7 +127,7 @@ cc.Class({
 				self.node.removeFromParent();
 				self.node.destroy();
 			},this);
-			if(GlobalData.CupMoveDir == 'left'){
+			if(GlobalData.CupConfig.CupMoveDir == 'left'){
 				this.node.runAction(cc.sequence(cc.rotateBy(0.2,30),destroyFunc));
 			}else{
 				this.node.runAction(cc.sequence(cc.rotateBy(0.2,-30),destroyFunc));
@@ -124,7 +136,7 @@ cc.Class({
 		}
 		if(otherCollider.tag == GlobalData.RigidBodyTag.startLeft || otherCollider.tag == GlobalData.RigidBodyTag.startRight){
 			contact.disabled = true;
-			if(GlobalData.CupMoveDir == 'right' && otherCollider.tag == GlobalData.RigidBodyTag.startLeft){
+			if(GlobalData.CupConfig.CupMoveDir == 'right' && otherCollider.tag == GlobalData.RigidBodyTag.startLeft){
 				if(this.rotateFlag != null && this.rotateFlag.isDone() == false){
 					return;
 				}
@@ -149,7 +161,7 @@ cc.Class({
 				this.clearBalls();
 				this.updateCircleNum();
 			}
-			if(GlobalData.CupMoveDir == 'left' && otherCollider.tag == GlobalData.RigidBodyTag.startRight){
+			if(GlobalData.CupConfig.CupMoveDir == 'left' && otherCollider.tag == GlobalData.RigidBodyTag.startRight){
 				if(this.rotateFlag != null && this.rotateFlag.isDone() == false){
 					return;
 				}
@@ -190,27 +202,33 @@ cc.Class({
 
     // 每次处理完碰撞体接触逻辑时被调用
     onPostSolve: function (contact, selfCollider, otherCollider) {
-		//球体拖入杯子中之后设置球体重量为0 防止压坏杯子
-		if(otherCollider.tag == GlobalData.RigidBodyTag.ball){
-			if(this.balls[otherCollider.node.uuid] != null){
-				//otherCollider.node.getComponent(cc.RigidBody).gravityScale = 0;
-				//contact.disabled = true;
-			}
-		}
     },
 	setCupScoreLabel(ballNode){
 		var self = this;
 		var ballCom = ballNode.getComponent('ball');
+		if(this.level > ballCom.level){
+			ballCom.setColor(this.level);
+		}
 		var size = this.node.getContentSize();
 		if(this.cupScoreDic[ballCom.color] == null){
 			var scoreLabel = cc.instantiate(GlobalData.assets['CupScore']);
-			var colorMat = GlobalData.BallColorDic[ballCom.color];
+			var colorMat = GlobalData.BallConfig.BallColorDic[ballCom.color];
 			scoreLabel.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 			var scoreSize = scoreLabel.getContentSize();
 			this.cupScoreDic[ballCom.color] = scoreLabel;
 			this.node.addChild(scoreLabel);
 			scoreLabel.setPosition(cc.p(0,size.height/2 + scoreSize.height/2 + 10));
 			this.cupScoreNumDic[ballCom.color] = 0;
+		}
+		//对label 进行定位 level小的 在下面
+		var idx = 0;
+		for(var i = 0;i < GlobalData.BallConfig.BallColor.length;i++){
+			var scoreLabel = this.cupScoreDic[GlobalData.BallConfig.BallColor[i]];
+			if(scoreLabel != null){
+				var scoreSize = scoreLabel.getContentSize();
+				scoreLabel.setPosition(cc.p(0,size.height/2 + (scoreSize.height/2 + 10) * (idx + 1)));
+				idx = idx + 1;
+			}
 		}
 		var score = GlobalData.ScoreLevel[ballCom.level] > GlobalData.ScoreLevel[this.level] ? GlobalData.ScoreLevel[ballCom.level]:GlobalData.ScoreLevel[this.level];
 		this.cupScoreNumDic[ballCom.color] += score;
@@ -222,9 +240,11 @@ cc.Class({
 		});
 		this.node.dispatchEvent(this.EventCustom);
 		this.cupScoreDic[ballCom.color].runAction(cc.sequence(cc.fadeOut(1.5),cc.callFunc(function(){
-			this.cupScoreDic[ballCom.color].removeFromParent();
-			this.cupScoreDic[ballCom.color].destroy();
-			this.cupScoreDic[ballCom.color] = null;
+			if(self.cupScoreDic[ballCom.color] != null){
+				self.cupScoreDic[ballCom.color].removeFromParent();
+				self.cupScoreDic[ballCom.color].destroy();
+				self.cupScoreDic[ballCom.color] = null;
+			}
 		},this)));
 	},
 	updateCircleNum(){
@@ -232,7 +252,8 @@ cc.Class({
 		if(this.circleNum > GlobalData.GameRunTime.CircleLevel){
 			GlobalData.GameRunTime.CircleLevel += 1;
 			this.EventCustom.setUserData({
-				type:'UpdateCircle'
+				type:'UpdateCircle',
+				uuid:this.node.uuid
 			});
 			this.node.dispatchEvent(this.EventCustom);
 		}
@@ -240,7 +261,7 @@ cc.Class({
 	update(dt){
 		//杯子运动轨迹控制		
 		this.node.getComponent(cc.RigidBody).syncPosition();
-		if(GlobalData.CupMoveDir == 'right'){
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
 			if(this.node.x >= this.width/2 && this.moveDir == 1){
 				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
 				this.moveDir = 2;
@@ -308,7 +329,7 @@ cc.Class({
 		if(this.getBallsLength() <= 0){
 			//如果没有接住球体则需要销毁
 			var size = this.node.getContentSize();
-			if(GlobalData.CupMoveDir == 'right'){
+			if(GlobalData.CupConfig.CupMoveDir == 'right'){
 				if(this.node.y >= (size.height - this.height/2) && (this.node.x + this.width/2 <= 0) && this.moveDir == 4){
 					this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 					this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
