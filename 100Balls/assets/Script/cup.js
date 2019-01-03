@@ -73,7 +73,7 @@ cc.Class({
 		for(var key in this.balls){
 			var ball = this.balls[key];
 			GlobalData.GameRunTime.FallBallNum += 1;
-			GlobalData.GameRunTime.CupBallsNum[ball.uuid] = ball;
+			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
 		}
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
@@ -112,6 +112,7 @@ cc.Class({
 			this.balls[otherCollider.node.uuid] = otherCollider.node;
 			this.setCupScoreLabel(otherCollider.node);
 			contact.disabled = true;
+			GlobalData.GameRunTime.BallAbledNum += 1;
 			return;
 		}
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cup){
@@ -119,9 +120,11 @@ cc.Class({
 		}
 		if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
 			//contact.disabled = true;
+			delete GlobalData.GameRunTime.CupNodesDic[this.node.uuid];
 			var destroyFunc = cc.callFunc(function(){
 				self.EventCustom.setUserData({
-					type:'CupRemove'
+					type:'CupRemove',
+					node:self.node.uuid
 				});
 				self.node.dispatchEvent(self.EventCustom);
 				self.node.removeFromParent();

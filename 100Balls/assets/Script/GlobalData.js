@@ -10,10 +10,13 @@ GlobalData = {
 		startRight:7
 	},
 	GameRunTime:{
-		CupBallsNum:{},
+		ContentBallsDic:{},
+		BallNodesDic:{},
+		CupNodesDic:{},
 		FallBallNum:0,
 		BallUnFallNum:0,
 		CupAbledNum:0,
+		BallAbledNum:0,
 		TotalScore:0,
 		CircleLevel:0
 	},

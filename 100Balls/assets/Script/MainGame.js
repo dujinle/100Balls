@@ -39,7 +39,7 @@ cc.Class({
 		cc.director.getCollisionManager().enabled = true;
 		cc.director.getCollisionManager().enabledDebugDraw = true;
 		this.node.on("BallFallEvent",this.BallFallEvent,this);
-		this.mainGameBoard.active = false;
+		this.mainGameBoard.active = true;
 		this.startButton.getComponent(cc.Button).interactable = false;
 		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
 	},
@@ -74,14 +74,6 @@ cc.Class({
 		this.schedule(this.loadUpdate,0.5);
 	},
 	enterGame(){
-		//准备球儿数量
-		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallConfig.BallTotalNum;
-		//清除数据
-		GlobalData.GameRunTime.FallBallNum = 0;
-		GlobalData.GameRunTime.TotalScore = 0;
-		GlobalData.GameRunTime.CupAbledNum = GlobalData.CupConfig.CupCreatNum;
-		this.scoreLabel.getComponent(cc.Label).string = 0;
-		this.levelLabel.getComponent(cc.Label).string = 0;
 		this.initBalls();
 		this.initCups(0);
 		this.initFallBalls();
@@ -97,6 +89,7 @@ cc.Class({
 				let xlevel = GlobalData.BallConfig.BallRowArray[i]/2 - j;
 				var xx = (size.width + 3) * xlevel - size.width/2;
 				ball.setPosition(cc.p(xx,yy));
+				GlobalData.GameRunTime.BallNodesDic[ball.uuid] = ball;
 			}
 		}
 	},
@@ -110,6 +103,7 @@ cc.Class({
 		var callBack = cc.callFunc(function(){
 			var cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
 			self.trickNode.addChild(cupNode);
+			GlobalData.GameRunTime.CupNodesDic[cupNode.uuid] = cupNode;
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
 				var pos = cupNode.getComponent('cup').getXY(trickSize.width,trickSize.height,30);
 				cupNode.setPosition(pos);
@@ -145,17 +139,25 @@ cc.Class({
 		console.log(data);
 		if(data.type == 'FallLine'){
 			GlobalData.GameRunTime.FallBallNum -= 1;
-			if(GlobalData.GameRunTime.CupBallsNum[data.uuid] != null){
-				delete GlobalData.GameRunTime.CupBallsNum[data.uuid];
+			GlobalData.GameRunTime.BallAbledNum -= 1;
+			if(GlobalData.GameRunTime.ContentBallsDic[data.uuid] != null){
+				delete GlobalData.GameRunTime.ContentBallsDic[data.uuid];
 			}
 			if(GlobalData.GameRunTime.BallUnFallNum > 0){
 				this.fallOneBall();
 			}
+			this.finishGame();
 		}else if(data.type == 'CupRemove'){
 			GlobalData.GameRunTime.CupAbledNum -= 1;
+			this.finishGame();
 		}else if(data.type == 'StartGame'){
 			this.startGameBoard.active = false;
 			this.mainGameBoard.active = true;
+			this.clearGame();
+			this.enterGame();
+		}else if(data.type == 'ReStartGame'){
+			this.finishGameScene.removeFromParent();
+			this.finishGameScene.destroy();
 			this.enterGame();
 		}else if(data.type == 'UpdateScore'){
 			GlobalData.GameRunTime.TotalScore += data.score;
@@ -168,29 +170,31 @@ cc.Class({
 			var time = (trickNodeSize.width/2 + 100)/this.cupSpeed * 1000;
 			if(GlobalData.GameRunTime.CircleLevel % GlobalData.BallConfig.BallUpLevel == 0){
 				setTimeout(function(){
-					var key = util.getRandomIndexForArray(Object.keys(GlobalData.GameRunTime.CupBallsNum));
+					var key = util.getRandomIndexForArray(Object.keys(GlobalData.GameRunTime.ContentBallsDic));
 					if(key != -1){
-						var ballCom = GlobalData.GameRunTime.CupBallsNum[key].getComponent('ball');
+						var ballCom = GlobalData.GameRunTime.ContentBallsDic[key].getComponent('ball');
 						if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
 							ballCom.setColor(ballCom.level + 1);
 						}
 					}
 				},time);
 			}
-			if(GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel){
+			if(GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel == 0){
 				setTimeout(function(){
 					var UpLevelIsValid = new Array();
-					for(var i = 0;i < self.trickNode.children.length;i++){
-						var cup = self.trickNode.children[i];
-						var cupCom = cup.getComponent('cup');
-						if(cupCom.UpLevelIsValid()){
-							UpLevelIsValid.push(cup);
+					for(var key in GlobalData.GameRunTime.CupNodesDic){
+						var cup = GlobalData.GameRunTime.CupNodesDic[key];
+						if(cup != null && cup.isValid){
+							var cupCom = cup.getComponent('cup');
+							if(cupCom.UpLevelIsValid()){
+								UpLevelIsValid.push(cup);
+							}
 						}
 					}
-					var key = util.getRandomIndexForArray(UpLevelIsValid);
-					if(key != -1){
-						var cupCom = UpLevelIsValid[key].getComponent('cup');
-						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1))){
+					var CupNode = util.getRandomIndexForArray(UpLevelIsValid);
+					if(CupNode != -1){
+						var cupCom = CupNode.getComponent('cup');
+						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
 							cupCom.setColor(cupCom.level + 1);
 						}
 					}
@@ -205,14 +209,59 @@ cc.Class({
 			ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic);
 			GlobalData.GameRunTime.FallBallNum += 1;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
-			GlobalData.GameRunTime.CupBallsNum[ball.uuid] = ball;
+			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
 		}
 	},
 	fallOneBall(){
 		let ball = this.balls.children[--GlobalData.GameRunTime.BallUnFallNum];
 		ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic);
 		GlobalData.GameRunTime.FallBallNum += 1;
-		GlobalData.GameRunTime.CupBallsNum[ball.uuid] = ball;
+		GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
+	},
+	clearGame(){
+		//清除球体
+		console.log(GlobalData.GameRunTime);
+		if(GlobalData.GameRunTime.BallAbledNum > 0){
+			for(var key in GlobalData.GameRunTime.BallNodesDic){
+				var ball = GlobalData.GameRunTime.BallNodesDic[key];
+				if(ball.isValid){
+					ball.removeFromParent();
+					ball.destroy();
+				}
+			}
+		}
+		//清除杯子
+		if(GlobalData.GameRunTime.CupAbledNum > 0){
+			for(var key in GlobalData.GameRunTime.CupNodesDic){
+				var cup = GlobalData.GameRunTime.CupNodesDic[key];
+				if(cup.isValid){
+					cup.removeFromParent();
+					cup.destroy();
+				}
+			}
+		}
+		//准备球儿数量
+		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallConfig.BallTotalNum;
+		GlobalData.GameRunTime.BallAbledNum = GlobalData.GameRunTime.BallUnFallNum;
+		//清除数据
+		GlobalData.GameRunTime.ContentBallsDic = {};
+		GlobalData.GameRunTime.BallNodesDic = {};
+		GlobalData.GameRunTime.CupNodesDic = {};
+		GlobalData.GameRunTime.FallBallNum = 0;
+		GlobalData.GameRunTime.CircleLevel = 0;
+		GlobalData.GameRunTime.FallBallNum = 0;
+		GlobalData.GameRunTime.TotalScore = 0;
+		GlobalData.GameRunTime.CupAbledNum = GlobalData.CupConfig.CupCreatNum;
+		this.scoreLabel.getComponent(cc.Label).string = 0;
+		this.levelLabel.getComponent(cc.Label).string = 0;
+	},
+	finishGame(){
+		if(GlobalData.GameRunTime.CupAbledNum <= 0 || GlobalData.GameRunTime.BallAbledNum <= 0){
+			this.clearGame();
+			this.finishGameScene = cc.instantiate(GlobalData.assets['FinishGameScene']);
+			this.node.addChild(this.finishGameScene);
+			this.finishGameScene.setPosition(cc.p(0,0));			
+		}
 	}
 
     // update (dt) {},

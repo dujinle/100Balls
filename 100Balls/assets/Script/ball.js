@@ -49,17 +49,17 @@ cc.Class({
 
     // 每次处理完碰撞体接触逻辑时被调用
     onPostSolve: function (contact, selfCollider, otherCollider) {
+		var self = this;
 		if(this.fallFlag == false){
-			/*
 			if(otherCollider.tag == GlobalData.RigidBodyTag.cup){
 				this.fallFlag = true;
 			}
-			*/
 			if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
 				this.fallFlag = true;
+				delete GlobalData.GameRunTime.BallNodesDic[this.node.uuid];
 				var destroyFunc = cc.callFunc(function(){
-					this.node.removeFromParent();
-					this.node.destroy();
+					self.node.removeFromParent();
+					self.node.destroy();
 				},this);
 				this.node.runAction(cc.sequence(cc.delayTime(2),destroyFunc));
 			}
