@@ -1,9 +1,9 @@
-//var WxGlobal = require('WxAPI');
+var WxGlobal = require('WxAPI');
 var util = require('util');
 if (typeof wx !== 'undefined') {
     //启动微信初始化
 	console.log("load times");
-    //WxGlobal.initOnEnter();
+    WxGlobal.initOnEnter();
 }
 
 let ThirdAPI = {
@@ -29,7 +29,7 @@ let ThirdAPI = {
 		var url = GlobalData.cdnWebsite + GlobalData.cdnFileDefaultPath;
 		util.httpGET(url,null,function(code,data){
 			if(code == 200){
-				util.updateObj(GlobalData,data,'cdnNumRate');
+				util.updateObj(GlobalData,data,null);
 				console.log(GlobalData);
 			}
 		});
@@ -42,9 +42,9 @@ let ThirdAPI = {
         //云端数据再存储一份在本地
         try {
 			var dataDic = {
-				"GameRunTime":GlobalData.GameRunTime
+				"GameInfoConfig":GlobalData.GameInfoConfig
 			};
-			console.log('updataGameInfo',dataDic);
+			console.log('GameInfoConfig',dataDic);
             let data = JSON.stringify(dataDic);
             cc.sys.localStorage.setItem(ThirdAPI.loadLocalData_storageName, data);	
         } catch (error) {

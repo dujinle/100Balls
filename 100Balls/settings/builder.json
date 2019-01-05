@@ -11,7 +11,7 @@
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
   "jailbreakPlatform": false,
-  "md5Cache": false,
+  "md5Cache": true,
   "mergeStartScene": false,
   "oauthLoginServer": "",
   "optimizeHotUpdate": false,
@@ -36,7 +36,7 @@
     "appid": "wx9934affda14378ff",
     "isSubdomain": false,
     "orientation": "portrait",
-    "subContext": ""
+    "subContext": "wx-open-data-project"
   },
   "xxteaKey": "77430678-8939-45",
   "zipCompressJs": true

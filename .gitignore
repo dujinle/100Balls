@@ -1,0 +1,8 @@
+wx-open-data-project/temp/*
+wx-open-data-project/library/*
+wx-open-data-project/build/*
+wx-open-data-project/local/*
+library/
+temp/
+local/
+build/

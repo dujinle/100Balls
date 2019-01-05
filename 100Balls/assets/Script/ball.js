@@ -4,6 +4,8 @@ cc.Class({
     properties: {
 		level:0,
 		color:null,
+		audioManager:null,
+		isInCup:false,
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -18,7 +20,8 @@ cc.Class({
 		this.node.getComponent(cc.PhysicsCircleCollider).enabled = false;
 		this.setColor(this.level);
 	},
-	setRigidBodyType(type){
+	setRigidBodyType(type,audioManager){
+		this.audioManager = audioManager;
 		this.node.getComponent(cc.RigidBody).type = type;
 		this.node.getComponent(cc.PhysicsCircleCollider).enabled = true;
 		//this.node.getComponent(cc.RigidBody).type = type;
@@ -35,8 +38,6 @@ cc.Class({
 		if(otherCollider.tag == GlobalData.RigidBodyTag.startLeft || otherCollider.tag == GlobalData.RigidBodyTag.startRight){
 			contact.disabled = true;
 		}
-		//console.log(otherCollider.tag);
-		//console.log('onBeginContact',otherCollider.node.getPosition(),selfCollider.node.getPosition());
     },
 
     // 只在两个碰撞体结束接触时被调用一次
@@ -45,24 +46,35 @@ cc.Class({
 
     // 每次将要处理碰撞体接触逻辑时被调用
     onPreSolve: function (contact, selfCollider, otherCollider) {
+		if(otherCollider.tag == GlobalData.RigidBodyTag.floor && this.audioManager != null){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.BallTouchFloor);
+			console.log(this.isInCup);
+		}
+		if(otherCollider.tag == GlobalData.RigidBodyTag.cupInner || otherCollider.tag == GlobalData.RigidBodyTag.cupSide){
+			if(this.audioManager != null){
+				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.BallTouchCup);
+			}
+		}
     },
 
     // 每次处理完碰撞体接触逻辑时被调用
     onPostSolve: function (contact, selfCollider, otherCollider) {
 		var self = this;
 		if(this.fallFlag == false){
-			if(otherCollider.tag == GlobalData.RigidBodyTag.cup){
+			if(otherCollider.tag == GlobalData.RigidBodyTag.cupInner || otherCollider.tag == GlobalData.RigidBodyTag.cupSide){
 				this.fallFlag = true;
 			}
 			if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
 				this.fallFlag = true;
-				delete GlobalData.GameRunTime.BallNodesDic[this.node.uuid];
-				var destroyFunc = cc.callFunc(function(){
-					self.node.removeFromParent();
-					self.node.destroy();
-				},this);
-				this.node.runAction(cc.sequence(cc.delayTime(2),destroyFunc));
 			}
+		}
+		if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
+			delete GlobalData.GameRunTime.BallNodesDic[this.node.uuid];
+			var destroyFunc = cc.callFunc(function(){
+				self.node.removeFromParent();
+				self.node.destroy();
+			},this);
+			this.node.runAction(cc.sequence(cc.delayTime(0.5),destroyFunc));
 		}
     },
     update (dt) {

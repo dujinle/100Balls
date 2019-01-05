@@ -1,8 +1,13 @@
+var ThirdAPI = require('ThirdAPI');
 cc.Class({
     extends: cc.Component,
 
     properties: {
 		startButton:cc.Node,
+		soundOnNode:cc.Node,
+		soundOffNode:cc.Node,
+		scoreLabel:cc.Node,
+		levelLabel:cc.Node,
     },
     onLoad () {
 		cc.eventManager.addListener({
@@ -19,11 +24,59 @@ cc.Class({
          }, this.node);
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 	},
+	start(){
+		if(GlobalData.GameInfoConfig.audioSupport == 1){
+			this.soundOnNode.active = true;
+			this.soundOffNode.active = false;
+		}else{
+			this.soundOnNode.active = false;
+			this.soundOffNode.active = true;
+		}
+		this.scoreLabel.getComponent(cc.Label).string = GlobalData.GameInfoConfig.maxScore;
+		this.levelLabel.getComponent(cc.Label).string = 'Level ' + GlobalData.GameInfoConfig.maxLevel;
+	},
 	startButtonCb(event){
 		this.EventCustom.setUserData({
 			type:'StartGame'
 		});
 		this.node.dispatchEvent(this.EventCustom);
 	},
-    // update (dt) {},
+	soundButtonCb(){
+		if(GlobalData.GameInfoConfig.audioSupport == 0){
+			this.soundOnNode.active = true;
+			this.soundOffNode.active = false;
+			GlobalData.GameInfoConfig.audioSupport = 1;
+		}else{
+			GlobalData.GameInfoConfig.audioSupport = 0;
+			this.soundOnNode.active = false;
+			this.soundOffNode.active = true;
+		}
+	},
+    shareButtonCb(){
+		var param = {
+			type:null,
+			arg:null,
+			successCallback:this.shareSuccessCb,
+			failCallback:this.shareFailedCb,
+			shareName:'share',
+			isWait:false
+		};
+		ThirdAPI.shareGame(param);
+	},
+	rankButtonCb(){
+		this.EventCustom.setUserData({type:'RankView'});
+		this.node.dispatchEvent(this.EventCustom);
+	},
+	groupRankButtonCb(){
+		this.EventCustom.setUserData({type:'RankGroupView'});
+		this.node.dispatchEvent(this.EventCustom);
+	},
+	shareSuccessCb(type, shareTicket, arg){
+		console.log(type, shareTicket, arg);
+	},
+	shareFailedCb(type,arg){
+		console.log(type,arg);
+	},
+	
+	// update (dt) {},
 });

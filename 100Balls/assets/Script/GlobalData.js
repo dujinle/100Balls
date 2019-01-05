@@ -1,13 +1,22 @@
 GlobalData = {
+	AudioManager:{
+		ButtonClick:0,
+		BallTouchCup:1,
+		BallTouchFloor:2,
+		CupTouchFloor:3,
+		GameFinish:4
+	},
 	RigidBodyTag:{
 		ball:0,
-		cup:1,
+		cupInner:1,
 		floor:2,
 		cupLine:3,
 		rotateRight:4,
 		rotateLeft:5,
 		startLeft:6,
-		startRight:7
+		startRight:7,
+		content:8,
+		cupSide:9
 	},
 	GameRunTime:{
 		ContentBallsDic:{},
@@ -19,6 +28,20 @@ GlobalData = {
 		BallAbledNum:0,
 		TotalScore:0,
 		CircleLevel:0
+	},
+	GameInfoConfig:{
+		audioSupport:1,
+		maxScore:0,
+		maxLevel:0,
+		shareTimes:0,
+		juNum:0
+	},
+	cdnGameConfig:{
+		refreshBanner:0,		//0 关闭	1打开
+		minShareTime:2,
+		gameModel:'crazy',
+		shareSuccessWeight:[1,1,0.8,0.8,0.6],
+		shareCustomSet:1		//0 关闭 自定义分享 1打开自定义分享
 	},
 	CupConfig:{
 		CupColor:['White','Green','Blue','Violet','Orange','Red'],
@@ -52,5 +75,7 @@ GlobalData = {
 		BallPreFall:30,
 		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
 	},
-	ScoreLevel:[1,2,3,4,5,6]
+	ScoreLevel:[1,2,3,4,5,6],
+	cdnShareImages:["res/raw-assets/resources/shareImages/shareDefault.d3b6b.png"],
+	cdnTexts:["你介意男生玩这个游戏吗?"]
 };

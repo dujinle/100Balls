@@ -13,12 +13,19 @@ let util = {
 		console.log("getUpLevel",random,propsRate,prop);
 		return prop;
 	},
-	getRandomIndexForArray:function(array){
+	getRandomObjForArray:function(array){
 		if(array == null || array.length == 0){
 			return -1;
 		}
 		var random = Math.floor(Math.random()*array.length);
 		return array[random];
+	},
+	getRandomIndexForArray:function(array){
+		if(array == null || array.length == 0){
+			return -1;
+		}
+		var random = Math.floor(Math.random()*array.length);
+		return random;
 	},
 	//节点距离计算欧式公式
 	euclDist:function(pos1,pos2){

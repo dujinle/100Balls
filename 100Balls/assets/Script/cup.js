@@ -12,6 +12,8 @@ cc.Class({
 		level:0,
 		color:null,
 		innerNode:cc.Node,
+		audioManager:null,
+		isAbled:true,
     },
     onLoad () {
 		console.log("creat cup start");
@@ -34,11 +36,12 @@ cc.Class({
 		var colorMat = GlobalData.CupConfig.CupColorDic[this.color];
 		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
-	startMove(width,height,speed,addSpeed){
+	startMove(width,height,speed,addSpeed,audioManager){
 		this.width = width;
 		this.height = height;
 		this.speed = speed;
 		this.addSpeed = addSpeed;
+		this.audioManager = audioManager;
 		if(this.myId == 0){
 			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 			this.node.getComponent(cc.RigidBody).gravityScale = 10;	
@@ -107,19 +110,29 @@ cc.Class({
     onBeginContact: function (contact, selfCollider, otherCollider) {
 
 		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
-		var self = this;
-		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
-			this.balls[otherCollider.node.uuid] = otherCollider.node;
-			this.setCupScoreLabel(otherCollider.node);
+		if(this.isAbled == false){
 			contact.disabled = true;
-			GlobalData.GameRunTime.BallAbledNum += 1;
 			return;
 		}
-		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cup){
+		var self = this;
+		//如果碰撞瓶盖则代表球进入
+		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
+			contact.disabled = true;
+			if(this.balls[otherCollider.node.uuid] == null){
+				this.balls[otherCollider.node.uuid] = otherCollider.node;
+				this.setCupScoreLabel(otherCollider.node);
+				GlobalData.GameRunTime.BallAbledNum += 1;
+			}
 			return;
 		}
+		//如果杯子碰到地板则销毁
 		if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
 			//contact.disabled = true;
+			//console.log('Cup touch floor ',this.node.uuid,selfCollider.tag);
+			this.isAbled = false;
+			if(this.audioManager != null){
+				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
+			}
 			delete GlobalData.GameRunTime.CupNodesDic[this.node.uuid];
 			var destroyFunc = cc.callFunc(function(){
 				self.EventCustom.setUserData({
@@ -137,6 +150,7 @@ cc.Class({
 			}
 			return;
 		}
+		//如果杯子碰到 反转挡板则进行反转
 		if(otherCollider.tag == GlobalData.RigidBodyTag.startLeft || otherCollider.tag == GlobalData.RigidBodyTag.startRight){
 			contact.disabled = true;
 			if(GlobalData.CupConfig.CupMoveDir == 'right' && otherCollider.tag == GlobalData.RigidBodyTag.startLeft){
@@ -212,6 +226,7 @@ cc.Class({
 		if(this.level > ballCom.level){
 			ballCom.setColor(this.level);
 		}
+		ballCom.isInCup = true;
 		var size = this.node.getContentSize();
 		if(this.cupScoreDic[ballCom.color] == null){
 			var scoreLabel = cc.instantiate(GlobalData.assets['CupScore']);
@@ -343,6 +358,32 @@ cc.Class({
 					this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 					this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
 					this.node.getComponent(cc.RigidBody).gravityScale = 10;
+				}
+			}
+		}
+		else{
+			//这里做一下额外的处理 如果瓶子走过了接球的位置则打开瓶盖防止多次加分
+			//打开瓶盖
+			var size = this.node.getContentSize();
+			if(GlobalData.CupConfig.CupMoveDir == 'right'){
+				if(this.node.y <= -this.height/2 && (this.node.x + size.width < 0)){
+					var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
+					for(var i = 0;i < physicsChainColliders.length;i++){
+						if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
+							physicsChainColliders[i].enabled = false;
+							break;
+						}
+					}
+				}
+			}else{
+				if(this.node.y <= -this.height/2 && (this.node.x - size.width > 0)){
+					var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
+					for(var i = 0;i < physicsChainColliders.length;i++){
+						if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
+							physicsChainColliders[i].enabled = false;
+							break;
+						}
+					}
 				}
 			}
 		}
