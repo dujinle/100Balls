@@ -12,8 +12,11 @@ cc.Class({
 		level:0,
 		color:null,
 		innerNode:cc.Node,
-		audioManager:null,
 		isAbled:true,
+		audioSources:{
+			type:cc.AudioSource,
+			default:[]
+		},
     },
     onLoad () {
 		console.log("creat cup start");
@@ -36,12 +39,11 @@ cc.Class({
 		var colorMat = GlobalData.CupConfig.CupColorDic[this.color];
 		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
-	startMove(width,height,speed,addSpeed,audioManager){
+	startMove(width,height,speed,addSpeed){
 		this.width = width;
 		this.height = height;
 		this.speed = speed;
 		this.addSpeed = addSpeed;
-		this.audioManager = audioManager;
 		if(this.myId == 0){
 			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 			this.node.getComponent(cc.RigidBody).gravityScale = 10;	
@@ -106,9 +108,13 @@ cc.Class({
 		//console.log(width,height,x,y);
 		return cc.p(x,y);
 	},
+	play(type){
+		if(GlobalData.GameInfoConfig.audioSupport == 1){
+			this.audioSources[type].getComponent(cc.AudioSource).play();
+		}
+	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
-
 		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
 		if(this.isAbled == false){
 			contact.disabled = true;
@@ -130,9 +136,7 @@ cc.Class({
 			//contact.disabled = true;
 			//console.log('Cup touch floor ',this.node.uuid,selfCollider.tag);
 			this.isAbled = false;
-			if(this.audioManager != null){
-				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
-			}
+			this.play(GlobalData.AudioManager.CupTouchFloor);
 			delete GlobalData.GameRunTime.CupNodesDic[this.node.uuid];
 			var destroyFunc = cc.callFunc(function(){
 				self.EventCustom.setUserData({

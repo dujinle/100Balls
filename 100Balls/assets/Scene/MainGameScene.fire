@@ -386,7 +386,7 @@
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -100,
+      "x": -80.1,
       "y": 370
     },
     "_size": {
@@ -411,7 +411,7 @@
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 100,
+      "x": 80,
       "y": 370
     },
     "_size": {
@@ -3633,7 +3633,8 @@
     },
     "levelLabel": {
       "__id__": 72
-    }
+    },
+    "audioManager": null
   },
   {
     "__type__": "cc.Sprite",

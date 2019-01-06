@@ -43,6 +43,7 @@ cc.Class({
 		cc.director.getCollisionManager().enabledDebugDraw = true;
 		this.node.on("BallFallEvent",this.BallFallEvent,this);
 		this.mainGameBoard.active = true;
+		this.startGameBoard.getComponent('StartGame').audioManager = this.audioManager;
 		this.startButton.getComponent(cc.Button).interactable = false;
 		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
 	},
@@ -84,7 +85,7 @@ cc.Class({
 	initBalls(){
 		for(var i = 0;i < 10;i++){
 			for(var j = 0;j < GlobalData.BallConfig.BallRowArray[i];j++){
-				var ball = cc.instantiate(GlobalData.assets['ball']);
+				var ball = cc.instantiate(GlobalData.assets['BaseBall']);
 				this.balls.addChild(ball);
 				let ylevel = 5 - i;
 				var size = ball.getContentSize();
@@ -118,11 +119,11 @@ cc.Class({
 			cupNode.getComponent('cup').myId = deep;
 				
 			if(deep == 0){
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed,self.audioManager);
+				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed);
 			}else if(deep == 1){
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed/4,self.audioManager);
+				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed/4);
 			}else{
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,self.cupSpeed,self.audioManager);
+				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,self.cupSpeed);
 			}
 			self.initCups(deep + 1);
 		},this);
@@ -154,7 +155,6 @@ cc.Class({
 			GlobalData.GameRunTime.CupAbledNum -= 1;
 			this.finishGame();
 		}else if(data.type == 'StartGame'){
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
 			this.startGameBoard.active = false;
 			this.mainGameBoard.active = true;
 			this.clearGame();
@@ -223,14 +223,26 @@ cc.Class({
 			if(this.finishGameScene != null){
 				this.finishGameScene.getComponent("FinishGame").isDraw = false;
 			}
-			this.showPBGameScene('RankGameScene');
+			this.showPBGameScene({
+				scene:'RankGameScene',
+				type:'rankUIFriendRank'
+			});
+		}
+		else if(data.type == 'RankGroupView'){
+			if(this.finishGameScene != null){
+				this.finishGameScene.getComponent("FinishGame").isDraw = false;
+			}
+			this.showPBGameScene({
+				scene:'RankGameScene',
+				type:'rankUIGroupRank'
+			});
 		}
 	},
 	initFallBalls(){
 		var length = this.balls.children.length;
 		for(var i = 0;i < GlobalData.BallConfig.BallPreFall;i++){
 			var ball = this.balls.children[--length];
-			ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic,this.audioManager);
+			ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic);
 			GlobalData.GameRunTime.FallBallNum += 1;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
 			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
@@ -238,7 +250,7 @@ cc.Class({
 	},
 	fallOneBall(){
 		let ball = this.balls.children[--GlobalData.GameRunTime.BallUnFallNum];
-		ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic,this.audioManager);
+		ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic);
 		GlobalData.GameRunTime.FallBallNum += 1;
 		GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
 	},
@@ -282,20 +294,23 @@ cc.Class({
 	finishGame(){
 		if(GlobalData.GameRunTime.CupAbledNum <= 0 || GlobalData.GameRunTime.BallAbledNum <= 0){
 			this.clearGame();
-			this.showPBGameScene('FinishGameScene');	
+			this.showPBGameScene({
+				scene:'FinishGameScene',
+				type:null
+			});
 		}
 	},
-	showPBGameScene(type){
-		if(type == 'FinishGameScene'){
-			this.finishGameScene = cc.instantiate(GlobalData.assets[type]);
+	showPBGameScene(data){
+		if(data.scene == 'FinishGameScene'){
+			this.finishGameScene = cc.instantiate(GlobalData.assets[data.scene]);
 			this.node.addChild(this.finishGameScene);
 			this.finishGameScene.setPosition(cc.p(0,0));
 			this.finishGameScene.getComponent("FinishGame").show();
-		}else if(type == 'RankGameScene'){
-			this.rankGameScene = cc.instantiate(GlobalData.assets[type]);
+		}else if(data.scene == 'RankGameScene'){
+			this.rankGameScene = cc.instantiate(GlobalData.assets[data.scene]);
 			this.node.addChild(this.rankGameScene);
 			this.rankGameScene.setPosition(cc.p(0,0));
-			this.rankGameScene.getComponent("RankGame").show();
+			this.rankGameScene.getComponent("RankGame").show(data.type);
 		}
 	},
 	destroyGameBoard(board){

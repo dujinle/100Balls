@@ -8,6 +8,7 @@ cc.Class({
 		soundOffNode:cc.Node,
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
+		audioManager:null,
     },
     onLoad () {
 		cc.eventManager.addListener({
@@ -36,6 +37,9 @@ cc.Class({
 		this.levelLabel.getComponent(cc.Label).string = 'Level ' + GlobalData.GameInfoConfig.maxLevel;
 	},
 	startButtonCb(event){
+		if(this.audioManager != null){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		}
 		this.EventCustom.setUserData({
 			type:'StartGame'
 		});
@@ -53,6 +57,9 @@ cc.Class({
 		}
 	},
     shareButtonCb(){
+		if(this.audioManager != null){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		}
 		var param = {
 			type:null,
 			arg:null,
@@ -64,10 +71,16 @@ cc.Class({
 		ThirdAPI.shareGame(param);
 	},
 	rankButtonCb(){
+		if(this.audioManager != null){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		}
 		this.EventCustom.setUserData({type:'RankView'});
 		this.node.dispatchEvent(this.EventCustom);
 	},
 	groupRankButtonCb(){
+		if(this.audioManager != null){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		}
 		this.EventCustom.setUserData({type:'RankGroupView'});
 		this.node.dispatchEvent(this.EventCustom);
 	},

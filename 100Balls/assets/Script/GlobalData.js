@@ -1,10 +1,13 @@
 GlobalData = {
 	AudioManager:{
 		ButtonClick:0,
-		BallTouchCup:1,
-		BallTouchFloor:2,
-		CupTouchFloor:3,
-		GameFinish:4
+		//Ball中的音乐
+		BallTouchCup:0,
+		BallTouchFloor:1,
+		//Cup中的音乐
+		CupTouchFloor:0,
+		GameFinish:4,
+		AudioEnginMore:8
 	},
 	RigidBodyTag:{
 		ball:0,

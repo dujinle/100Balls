@@ -32,13 +32,16 @@ cc.Class({
 		this.node.removeFromParent();
 		this.node.destroy();
 	},
-	show(){
+	show(type){
 		console.log("finish game show");
 		this.isDraw = true;
 		this.node.active = true;
 		var param = {
 			type:'rankUIFriendRank'
 		};
+		if(type != null){
+			param.type = type;
+		}
 		ThirdAPI.getRank(param);
 	},
 	hide(){
