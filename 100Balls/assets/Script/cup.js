@@ -77,6 +77,7 @@ cc.Class({
 	clearBalls(){
 		for(var key in this.balls){
 			var ball = this.balls[key];
+			ball.getComponent('ball').fallReset();
 			GlobalData.GameRunTime.FallBallNum += 1;
 			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
 		}

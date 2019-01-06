@@ -23,8 +23,13 @@ cc.Class({
 	},
 	setRigidBodyType(type){
 		this.node.getComponent(cc.RigidBody).type = type;
+		this.node.getComponent(cc.RigidBody).gravityScale = GlobalData.BallConfig.BallGravityScale;
 		this.node.getComponent(cc.PhysicsCircleCollider).enabled = true;
 		//this.node.getComponent(cc.RigidBody).type = type;
+	},
+	fallReset(){
+		this.fallFlag = false;
+		this.updateFlag = false;
 	},
 	setColor(level){
 		this.level = level;
@@ -34,7 +39,18 @@ cc.Class({
 	},
 	play(type){
 		if(GlobalData.GameInfoConfig.audioSupport == 1){
-			this.audioSources[type].getComponent(cc.AudioSource).play();
+			//微信同时播放音频的数量有限 8
+			if(GlobalData.GameRunTime.AudioPlayNum >= GlobalData.AudioManager.AudioEnginMore){
+				let audio = GlobalData.AudioManager.AudioPlays.shift();
+				if(audio && audio.isPlaying){
+					audio.stop();
+				}
+				GlobalData.GameRunTime.AudioPlayNum -= 1;
+			}
+			var audio = this.audioSources[type].getComponent(cc.AudioSource);
+			audio.play();
+			GlobalData.AudioManager.AudioPlays.push(audio);
+			GlobalData.GameRunTime.AudioPlayNum += 1;
 		}
 	},
 	// 只在两个碰撞体开始接触时被调用一次
@@ -65,10 +81,15 @@ cc.Class({
     // 每次处理完碰撞体接触逻辑时被调用
     onPostSolve: function (contact, selfCollider, otherCollider) {
 		var self = this;
-		if(this.fallFlag == false){
-			if(otherCollider.tag == GlobalData.RigidBodyTag.cupInner || otherCollider.tag == GlobalData.RigidBodyTag.cupSide){
-				this.fallFlag = true;
+		//如果碰到杯子则球体离开了容器 更新容器信息
+		if(otherCollider.tag == GlobalData.RigidBodyTag.cupInner || otherCollider.tag == GlobalData.RigidBodyTag.cupSide){
+			if(GlobalData.GameRunTime.ContentBallsDic[this.node.uuid] != null){
+				GlobalData.GameRunTime.FallBallNum -= 1;
+				GlobalData.GameRunTime.BallAbledNum -= 1;
+				delete GlobalData.GameRunTime.ContentBallsDic[this.node.uuid];
 			}
+		}
+		if(this.fallFlag == false){
 			if(otherCollider.tag == GlobalData.RigidBodyTag.floor){
 				this.fallFlag = true;
 			}
@@ -85,7 +106,6 @@ cc.Class({
     update (dt) {
 		if(this.fallFlag == true && this.updateFlag == false){
 			this.updateFlag = true;
-			
 			this.EventCustom.setUserData({
 				type:'FallLine',
 				uuid:this.node.uuid

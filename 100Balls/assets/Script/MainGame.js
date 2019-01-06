@@ -190,9 +190,11 @@ cc.Class({
 						}
 					}
 					let BallNode = util.getRandomObjForArray(UpLevelIsValid);
-					var ballCom = BallNode.getComponent('ball');
-					if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
-						ballCom.setColor(ballCom.level + 1);
+					if(BallNode != -1){
+						var ballCom = BallNode.getComponent('ball');
+						if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
+							ballCom.setColor(ballCom.level + 1);
+						}
 					}
 				},time);
 			}
@@ -287,6 +289,7 @@ cc.Class({
 		GlobalData.GameRunTime.CircleLevel = 0;
 		GlobalData.GameRunTime.FallBallNum = 0;
 		GlobalData.GameRunTime.TotalScore = 0;
+		GlobalData.GameRunTime.AudioPlayNum = 0;
 		GlobalData.GameRunTime.CupAbledNum = GlobalData.CupConfig.CupCreatNum;
 		this.scoreLabel.getComponent(cc.Label).string = 0;
 		this.levelLabel.getComponent(cc.Label).string = 0;

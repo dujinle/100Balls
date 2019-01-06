@@ -7,7 +7,8 @@ GlobalData = {
 		//Cup中的音乐
 		CupTouchFloor:0,
 		GameFinish:4,
-		AudioEnginMore:8
+		AudioEnginMore:8,
+		AudioPlays:[]
 	},
 	RigidBodyTag:{
 		ball:0,
@@ -25,6 +26,7 @@ GlobalData = {
 		ContentBallsDic:{},
 		BallNodesDic:{},
 		CupNodesDic:{},
+		AudioPlayNum:0,
 		FallBallNum:0,
 		BallUnFallNum:0,
 		CupAbledNum:0,
@@ -72,10 +74,11 @@ GlobalData = {
 			Orange:[255,165,0],
 			Red:[255,0,0]
 		},
+		BallGravityScale:5,
 		BallUpLevel:1,
 		BallTotalNum:100,
 		BallGravityScale:10,
-		BallPreFall:30,
+		BallPreFall:15,
 		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
 	},
 	ScoreLevel:[1,2,3,4,5,6],
