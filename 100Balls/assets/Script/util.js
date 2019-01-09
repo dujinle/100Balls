@@ -27,6 +27,13 @@ let util = {
 		var random = Math.floor(Math.random()*array.length);
 		return random;
 	},
+	getDicLength:function(dict){
+		var length = 0;
+		for(let key in dict){
+			length += 1;
+		}
+		return length;
+	},
 	//节点距离计算欧式公式
 	euclDist:function(pos1,pos2){
 		var a = pos1.x - pos2.x;

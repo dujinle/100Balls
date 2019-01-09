@@ -23,18 +23,22 @@ cc.Class({
 		 this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 	},
 	start(){
-		this.texture = new cc.Texture2D();
-		var openDataContext = wx.getOpenDataContext();
-		this.sharedCanvas = openDataContext.canvas;
+		if(typeof wx != 'undefined'){
+			this.texture = new cc.Texture2D();
+			var openDataContext = wx.getOpenDataContext();
+			this.sharedCanvas = openDataContext.canvas;
+		}
 	},
 	show(){
 		console.log("finish game show");
-		this.isDraw = true;
-		//this.node.active = true;
-		var param = {
-			type:'gameOverUIRank'
-		};
-		ThirdAPI.getRank(param);
+		if(typeof wx != 'undefined'){
+			this.isDraw = true;
+			//this.node.active = true;
+			var param = {
+				type:'gameOverUIRank'
+			};
+			ThirdAPI.getRank(param);
+		}
 	},
 	hide(){
 		this.isDraw = false;

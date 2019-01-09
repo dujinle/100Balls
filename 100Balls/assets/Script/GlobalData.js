@@ -2,32 +2,29 @@ GlobalData = {
 	AudioManager:{
 		ButtonClick:0,
 		//Ball中的音乐
-		BallTouchCup:0,
-		BallTouchFloor:1,
+		BallTouchCup:1,
+		BallTouchFloor:2,
 		//Cup中的音乐
-		CupTouchFloor:0,
+		CupTouchFloor:3,
 		GameFinish:4,
 		AudioEnginMore:8,
 		AudioPlays:[]
 	},
 	RigidBodyTag:{
 		ball:0,
-		cupInner:1,
-		floor:2,
-		cupLine:3,
-		rotateRight:4,
-		rotateLeft:5,
-		startLeft:6,
-		startRight:7,
-		content:8,
-		cupSide:9
+		contentClose:1,
+		contentOpen:2,
+		floor:3,
+		contentLine:4,
+		cupInner:5,
+		cupLine:6,
+		cupSide:7
 	},
 	GameRunTime:{
 		ContentBallsDic:{},
 		BallNodesDic:{},
 		CupNodesDic:{},
 		AudioPlayNum:0,
-		FallBallNum:0,
 		BallUnFallNum:0,
 		CupAbledNum:0,
 		BallAbledNum:0,
@@ -78,7 +75,7 @@ GlobalData = {
 		BallUpLevel:1,
 		BallTotalNum:100,
 		BallGravityScale:10,
-		BallPreFall:15,
+		BallPreFall:30,
 		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
 	},
 	ScoreLevel:[1,2,3,4,5,6],
