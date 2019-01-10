@@ -14,6 +14,7 @@ cc.Class({
 		levelLabel:cc.Node,
 		startGameBoard:cc.Node,
 		mainGameBoard:cc.Node,
+		pauseButton:cc.Node,
 		audioManager:cc.Node,
 		cupSpeed:0,
     },
@@ -37,6 +38,8 @@ cc.Class({
         }, this.node);
 		ThirdAPI.loadLocalData();
 		this.loadDataSync();
+		this.node.on("BallFallEvent",this.BallFallEvent,this);
+		this.startButton.getComponent(cc.Button).interactable = false;
 		//打开物理属性 碰撞检测
 		cc.director.getPhysicsManager().enabled = true;
 		cc.director.getCollisionManager().enabled = true;
@@ -50,19 +53,12 @@ cc.Class({
 		*/
 		cc.director.getCollisionManager().enabledDebugDraw = true;
 		//cc.director.getCollisionManager().enabledDrawBoundingBox = true;
-		this.node.on("BallFallEvent",this.BallFallEvent,this);
-		this.mainGameBoard.active = true;
-		this.startGameBoard.active = true;
-		this.startGameBoard.getComponent('StartGame').audioManager = this.audioManager;
-		this.startButton.getComponent(cc.Button).interactable = false;
-		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
-		this.rigidBallPool = new cc.NodePool();
 	},
 	loadDataSync(){
 		var self = this;
 		//异步加载动态数据
 		this.rate = 0;
-		this.resLength = 6;
+		this.resLength = 7;
 		GlobalData.assets = {};
 		this.loadUpdate = function(){
 			console.log("this.rate:" + self.rate);
@@ -88,13 +84,35 @@ cc.Class({
 		});
 		this.schedule(this.loadUpdate,0.5);
 	},
+	start(){
+		this.pauseButton.active = false;
+		this.mainGameBoard.active = true;
+		this.startGameBoard.active = true;
+		this.rigidBallPool = new cc.NodePool();
+		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
+		this.startGameBoard.getComponent('StartGame').audioManager = this.audioManager;
+	},
 	//第一次进入游戏初始化数据
 	initGame(){
 		this.initBalls();
 		this.initFallBalls();
+		this.pauseButton.active = true;
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);
 		this.trickNode.getComponent('TrackManager').startTrack();
 		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
+	},
+	//所有面板的button按钮 返回函数
+	panelButtonCb(event,customEventData){
+		var self = this;
+		//继续游戏
+		this.audioManager.getComponent("AudioManager").play(GlobalData.AudioManager.ButtonClick);
+		if(customEventData == "P_show"){
+			this.trickNode.getComponent('TrackManager').stopTrack();
+			this.showPBGameScene({
+				scene:'PauseGameScene',
+				type:null
+			});
+		}
 	},
 	//再次进入游戏 数据重置
 	enterGame(){
@@ -165,6 +183,7 @@ cc.Class({
 		
 	},
 	BallFallEvent(event){
+		var self = this;
 		var data = event.getUserData();
 		console.log(data);
 		if(data.type == 'FallLine'){
@@ -172,11 +191,10 @@ cc.Class({
 				this.fallOneBall();
 			}
 		}else if(data.type == 'FallRemove'){
-			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[data.uuid];
+			var rigidBall = data.node;
 			if(rigidBall != null){
 				rigidBall.getComponent('ball').fallReset();
 				this.rigidBallPool.put(rigidBall);
-				delete GlobalData.GameRunTime.ContentBallsDic[data.uuid];
 				GlobalData.GameRunTime.BallAbledNum -= 1;
 			}
 			this.finishGame();
@@ -271,6 +289,25 @@ cc.Class({
 				type:'rankUIGroupRank'
 			});
 		}
+		else if(data.type == 'PauseContinue'){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+			if(this.pauseGameScene != null){
+				this.pauseGameScene.getComponent("PauseGame").hidePause(function(){
+					self.destroyGameBoard(self.pauseGameScene);
+					self.trickNode.getComponent('TrackManager').continueTrack();
+				});
+			}
+		}
+		else if(data.type == 'PauseReset'){
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+			if(this.pauseGameScene != null){
+				this.pauseGameScene.getComponent("PauseGame").hidePause(function(){
+					self.destroyGameBoard(self.pauseGameScene);
+					self.destroyGame();
+					self.startGameBoard.active = true;
+				});
+			}
+		}
 	},
 	initFallBalls(){
 		var length = this.balls.children.length;
@@ -303,6 +340,19 @@ cc.Class({
 		GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 		//ball.getComponent('ball').setRigidBodyType(cc.RigidBodyType.Dynamic);
 		//GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
+	},
+	//清除游戏中的数据
+	destroyGame(){
+		this.clearGame();
+		for(var key in GlobalData.GameRunTime.BallNodesDic){
+			var ball = GlobalData.GameRunTime.BallNodesDic[key];
+			if(ball.isValid){
+				ball.removeFromParent();
+				ball.destroy();
+			}
+		}
+		this.rigidBallPool.clear();
+		this.trickNode.getComponent('TrackManager').rigidCupPool.clear();
 	},
 	clearGame(){
 		//清除球体
@@ -344,6 +394,7 @@ cc.Class({
 				scene:'FinishGameScene',
 				type:null
 			});
+			
 		}
 	},
 	showPBGameScene(data){
@@ -357,6 +408,11 @@ cc.Class({
 			this.node.addChild(this.rankGameScene);
 			this.rankGameScene.setPosition(cc.p(0,0));
 			this.rankGameScene.getComponent("RankGame").show(data.type);
+		}else if(data.scene == 'PauseGameScene'){
+			this.pauseGameScene = cc.instantiate(GlobalData.assets['PauseGameScene']);
+			this.node.addChild(this.pauseGameScene);
+			this.pauseGameScene.setPosition(cc.p(0,0));
+			this.pauseGameScene.getComponent("PauseGame").showPause();
 		}
 	},
 	destroyGameBoard(board){

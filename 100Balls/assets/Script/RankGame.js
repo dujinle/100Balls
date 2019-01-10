@@ -22,11 +22,11 @@ cc.Class({
         }, this.node);
 	},
 	start(){
-		this.texture = new cc.Texture2D();
-		var openDataContext = wx.getOpenDataContext();
-		this.sharedCanvas = openDataContext.canvas;
-		//this.sharedCanvas.width = 640;
-		//this.sharedCanvas.height = 1136;
+		try{
+			this.texture = new cc.Texture2D();
+			var openDataContext = wx.getOpenDataContext();
+			this.sharedCanvas = openDataContext.canvas;
+		}catch(error){}
 	},
 	onClose(){
 		this.node.removeFromParent();

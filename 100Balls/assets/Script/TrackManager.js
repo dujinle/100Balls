@@ -60,17 +60,23 @@ cc.Class({
 			cupCom.addSpeed = GlobalData.CupConfig.CupMoveASpeed;
 			cupCom.startMove();
 			this.curCupIdx += 1;
-			this.schedule(this.updateMove,0.05);
+			this.schedule(this.updateMove,0.01);
 		}
 	},
 	stopTrack(){
 		this.unschedule(this.updateMove);
 	},
+	continueTrack(){
+		this.schedule(this.updateMove,0.01);
+	},
 	removeAllCups(){
-		for(var i = 0; i < this.node.children.length;i++){
-			var cupNode = this.node.children[i];
+		this.curCupIdx = 0;
+		for(var key in GlobalData.GameRunTime.CupNodesDic){
+			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
 			if(cupNode != null){
 				this.rigidCupPool.put(cupNode);
+				var cupCom = cupNode.getComponent('cup');
+				cupCom.resetStatus();
 			}
 		}
 		console.log('stopTrack :',this.rigidCupPool.size());
@@ -103,8 +109,8 @@ cc.Class({
 		}
 	},
 	removeCup(uuid){
-		console.log('remove cup',uuid,this.rigidCupPool.size());
 		var cupNode = GlobalData.GameRunTime.CupNodesDic[uuid];
+		console.log('remove cup',cupNode.uuid,this.rigidCupPool.size());
 		if(cupNode != null){
 			this.rigidCupPool.put(cupNode);
 			var cupCom = cupNode.getComponent('cup');

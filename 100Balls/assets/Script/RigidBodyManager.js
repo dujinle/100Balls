@@ -44,6 +44,10 @@ cc.Class({
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.contentLine){
 			console.log('fall ball start');
 			contact.disabled = true;
+			var ball = otherCollider.node;
+			if(GlobalData.GameRunTime.ContentBallsDic[ball.uuid] != null){
+				delete GlobalData.GameRunTime.ContentBallsDic[ball.uuid];
+			}
 			return;
 		}
 		//再开始的时候处理音效
@@ -84,7 +88,7 @@ cc.Class({
 			var destroyFunc = cc.callFunc(function(){
 				self.EventCustom.setUserData({
 					type:'FallRemove',
-					uuid:node.uuid
+					node:node
 				});
 				self.node.dispatchEvent(self.EventCustom);
 			},this);

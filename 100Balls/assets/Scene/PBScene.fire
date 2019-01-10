@@ -72,13 +72,16 @@
       },
       {
         "__id__": 26
+      },
+      {
+        "__id__": 28
       }
     ],
     "_tag": -1,
     "_active": true,
     "_components": [
       {
-        "__id__": 28
+        "__id__": 30
       }
     ],
     "_prefab": null,
@@ -850,6 +853,39 @@
       "__uuid__": "86c16340-16ca-4cb6-8a5c-bd4abc5de50c"
     },
     "fileId": "4e70xAznROm5yq+nUMd94n",
+    "sync": true
+  },
+  {
+    "__type__": "cc.Node",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_id": "aepYlvdC5A4bBDNR31A/s5",
+    "_prefab": {
+      "__id__": 29
+    },
+    "_name": "PauseGameScene",
+    "_active": true,
+    "_position": {
+      "__type__": "cc.Vec2",
+      "x": 2049,
+      "y": 0
+    },
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_localZOrder": 0,
+    "_globalZOrder": 0
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 28
+    },
+    "asset": {
+      "__uuid__": "438fafbc-b267-4e1b-8e96-9ddeaa9f725c"
+    },
+    "fileId": "aepYlvdC5A4bBDNR31A/s5",
     "sync": true
   },
   {

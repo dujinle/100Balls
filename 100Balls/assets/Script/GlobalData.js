@@ -10,6 +10,21 @@ GlobalData = {
 		AudioEnginMore:8,
 		AudioPlays:[]
 	},
+	//数字更新时间
+	TimeActionParam:{
+		GuideMoveTime:2,			//引导动画时间
+		EatNodeMoveTime:0.2,		//被吃掉的子移动时间
+		EatNodeSameDelayTime:0,		//同类子移动延迟单元
+		EatNodeOtherDelayTime:0.05,	//不同类子被吃间隔时间
+		EatNodeBigTime:0.1,			//数字变大的时间这个值需要x2
+		RefreshNodeTime:0.3,		//刷新数字的时间
+		PropSBAScaleTime:0.3,		//宝箱弹出效果时间
+		NumRollCell:2,				//数字roll的单元
+		NumRollTime:0.2,			//数字刷新时长
+		EatFlyTimeCell:0.5,			//数字飞的时间总时长 EatFlyTimeCell * 2.5
+		StartGameMoveTime:0.3,		//开始界面的效果
+		PauseGameMoveTime:0.3		//暂停游戏界面的时间
+	},
 	RigidBodyTag:{
 		ball:0,
 		contentClose:1,

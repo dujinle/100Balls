@@ -23,11 +23,11 @@ cc.Class({
 		 this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 	},
 	start(){
-		if(typeof wx != 'undefined'){
+		try{
 			this.texture = new cc.Texture2D();
 			var openDataContext = wx.getOpenDataContext();
 			this.sharedCanvas = openDataContext.canvas;
-		}
+		}catch(error){}
 	},
 	show(){
 		console.log("finish game show");
