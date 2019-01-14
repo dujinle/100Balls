@@ -9,6 +9,7 @@ cc.Class({
     },
 	onLoad(){
 		this.idxArray = new Array();
+		this.speedArray = {};
 		this.rigidCupPool = new cc.NodePool();
 	},
 	initTrack(audioManager){
@@ -60,14 +61,31 @@ cc.Class({
 			cupCom.addSpeed = GlobalData.CupConfig.CupMoveASpeed;
 			cupCom.startMove();
 			this.curCupIdx += 1;
-			this.schedule(this.updateMove,0.01);
+			//this.schedule(this.updateMove,0.01);
+			this.schedule(this.updateMoveV2,0.01);
+			this.speedArray[cupNode.uuid] = cupCom.addSpeed;
 		}
 	},
 	stopTrack(){
-		this.unschedule(this.updateMove);
+		for(var key in GlobalData.GameRunTime.CupNodesDic){
+			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
+			if(cupNode != null){
+				var cupCom = cupNode.getComponent('cup');
+				cupCom.stopMove();
+			}
+		}
+		this.unschedule(this.updateMoveV2);
 	},
 	continueTrack(){
-		this.schedule(this.updateMove,0.01);
+		//this.schedule(this.updateMove,0.01);
+		for(var key in GlobalData.GameRunTime.CupNodesDic){
+			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
+			if(cupNode != null){
+				var cupCom = cupNode.getComponent('cup');
+				cupCom.resumeMove();
+			}
+		}
+		this.schedule(this.updateMoveV2,0.01);
 	},
 	removeAllCups(){
 		this.curCupIdx = 0;
@@ -77,6 +95,7 @@ cc.Class({
 				this.rigidCupPool.put(cupNode);
 				var cupCom = cupNode.getComponent('cup');
 				cupCom.resetStatus();
+				delete this.speedArray[cupNode.uuid];
 			}
 		}
 		console.log('stopTrack :',this.rigidCupPool.size());
@@ -102,6 +121,7 @@ cc.Class({
 					cupCom.speed = GlobalData.CupConfig.CupMoveSpeed;
 					cupCom.addSpeed = GlobalData.CupConfig.CupMoveSpeed;
 				}
+				this.speedArray[cupNode.uuid] = cupCom.addSpeed;
 				GlobalData.GameRunTime.CupAbledNum += 1;
 				cupCom.startMove();
 				this.curCupIdx += 1;
@@ -115,6 +135,20 @@ cc.Class({
 			this.rigidCupPool.put(cupNode);
 			var cupCom = cupNode.getComponent('cup');
 			cupCom.resetStatus();
+			delete this.speedArray[cupNode.uuid];
+		}
+	},
+	updateMoveV2(dt){
+		for(var i = 0;i < this.node.children.length;i++){
+			var cupNode = this.node.children[i];
+			var cupCom = cupNode.getComponent('cup');
+			//console.log('cupNode:',dt,cupNode.uuid,cupNode.getPosition());
+			if(cupCom.isAbled == true){
+				this.cupLinerVelUpdate(cupNode,dt);
+				this.addCup(cupNode);
+				cupCom.checkRotate();
+				cupCom.checkFall();
+			}
 		}
 	},
 	updateMove (dt) {
@@ -128,6 +162,52 @@ cc.Class({
 				cupCom.checkRotate();
 				cupCom.checkFall();
 			}
+		}
+	},
+	moveRightV2(node,dt){
+		var nodeCom = node.getComponent('cup');
+		if(node.x >= nodeCom.width/2 && nodeCom.moveDir == 1){
+			node.setPosition(cc.p(nodeCom.width/2,nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-nodeCom.addSpeed);
+			nodeCom.moveDir = 2;
+		}
+		if(nodeCom.moveDir == 2 && node.y <= -nodeCom.height/2){
+			node.setPosition(cc.p(nodeCom.width/2,-nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(-nodeCom.addSpeed,0);
+			nodeCom.moveDir = 3;
+		}
+		if(nodeCom.moveDir == 3 && node.x <= -nodeCom.width/2){
+			node.setPosition(cc.p(-nodeCom.width/2,-nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,nodeCom.addSpeed);
+			nodeCom.moveDir = 4;
+		}
+		if(nodeCom.moveDir == 4 && node.y >= nodeCom.height/2){
+			node.setPosition(cc.p(-nodeCom.width/2,nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(nodeCom.addSpeed,0);
+			nodeCom.moveDir = 1;
+		}
+	},
+	moveLeftV2(node,dt){
+		var nodeCom = node.getComponent('cup');
+		if(node.x <= -nodeCom.width/2 && nodeCom.moveDir == 1){
+			node.setPosition(cc.p(-nodeCom.width/2,nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-nodeCom.addSpeed);
+			nodeCom.moveDir = 2;
+		}
+		if(nodeCom.moveDir == 2 && node.y <= -nodeCom.height/2){
+			node.setPosition(cc.p(-nodeCom.width/2,-nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(nodeCom.addSpeed,0);
+			nodeCom.moveDir = 3;
+		}
+		if(nodeCom.moveDir == 3 && node.x >= nodeCom.width/2){
+			node.setPosition(cc.p(nodeCom.width/2,-nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,nodeCom.addSpeed);
+			nodeCom.moveDir = 4;
+		}
+		if(nodeCom.moveDir == 4 && node.y >= nodeCom.height/2){
+			node.setPosition(cc.p(nodeCom.width/2,nodeCom.height/2));
+			node.getComponent(cc.RigidBody).linearVelocity = cc.p(-nodeCom.addSpeed,0);
+			nodeCom.moveDir = 1;
 		}
 	},
 	moveRight(node,dt){
@@ -174,24 +254,7 @@ cc.Class({
 				node.y += moveDist;
 			}
 		}
-		/*
-		if(node.x >= nodeCom.width/2 && nodeCom.moveDir == 1){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-nodeCom.addSpeed);
-			nodeCom.moveDir = 2;
-		}
-		if(nodeCom.moveDir == 2 && node.y <= -nodeCom.height/2){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(-nodeCom.addSpeed,0);
-			nodeCom.moveDir = 3;
-		}
-		if(nodeCom.moveDir == 3 && node.x <= -nodeCom.width/2){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,nodeCom.addSpeed);
-			nodeCom.moveDir = 4;
-		}
-		if(nodeCom.moveDir == 4 && node.y >= nodeCom.height/2){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(nodeCom.addSpeed,0);
-			nodeCom.moveDir = 1;
-		}
-		*/
+		
 	},
 	moveLeft(node,dt){
 		node.getComponent(cc.RigidBody).syncPosition();
@@ -237,24 +300,43 @@ cc.Class({
 				node.y += moveDist;
 			}
 		}
-		/*
-		if(node.x <= -nodeCom.width/2 && nodeCom.moveDir == 1){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-nodeCom.addSpeed);
-			nodeCom.moveDir = 2;
+		
+	},
+	cupLinerVelUpdate(node,dt){
+		node.getComponent(cc.RigidBody).syncPosition();
+		var nodeCom = node.getComponent('cup');
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
+			this.moveRightV2(node,dt);
+			//第一个杯子特效
+			var size = node.getContentSize();
+			if(nodeCom.moveDir == 2 && node.y <= (size.height - nodeCom.height/2) && nodeCom.myId == 0){
+				nodeCom.addSpeed = nodeCom.speed;
+				this.speedArray[node.uuid] = nodeCom.addSpeed;
+				//node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-nodeCom.addSpeed);
+			}
+			//如果是第二个杯子则提前控制减速
+			if(nodeCom.moveDir == 2 && node.y <= 0 && nodeCom.myId == 1){
+				nodeCom.addSpeed = nodeCom.speed;
+				this.speedArray[node.uuid] = nodeCom.addSpeed;
+				//node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-nodeCom.addSpeed);
+			}
+		}else{
+			this.moveLeftV2(node,dt);
+			//第一个杯子特效
+			var size = node.getContentSize();
+			if(this.moveDir == 2 && node.y <= (size.height - this.height/2) && this.myId == 0){
+				this.addSpeed = this.speed;
+				this.speedArray[node.uuid] = nodeCom.addSpeed;
+				//node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}
+			//如果是第二个杯子则提前控制减速
+			if(this.moveDir == 2 && node.y <= 0 && this.myId == 1){
+				this.addSpeed = this.speed;
+				this.speedArray[node.uuid] = nodeCom.addSpeed;
+				//node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}
+			
 		}
-		if(nodeCom.moveDir == 2 && node.y <= -nodeCom.height/2){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(nodeCom.addSpeed,0);
-			nodeCom.moveDir = 3;
-		}
-		if(nodeCom.moveDir == 3 && node.x >= nodeCom.width/2){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,nodeCom.addSpeed);
-			nodeCom.moveDir = 4;
-		}
-		if(nodeCom.moveDir == 4 && node.y >= nodeCom.height/2){
-			node.getComponent(cc.RigidBody).linearVelocity = cc.p(-nodeCom.addSpeed,0);
-			nodeCom.moveDir = 1;
-		}
-		*/
 	},
 	cupMoveUpdate(node,dt){
 		node.getComponent(cc.RigidBody).syncPosition();

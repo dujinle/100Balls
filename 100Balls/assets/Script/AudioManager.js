@@ -6,6 +6,10 @@ cc.Class({
 			type:cc.AudioSource,
 			default:[]
 		},
+		audio_bg: {
+            default: null,
+            url: cc.AudioClip
+        }
     },
 	play(type){
 		if(GlobalData.GameInfoConfig.audioSupport == 1){
@@ -21,6 +25,26 @@ cc.Class({
 			audio.play();
 			GlobalData.AudioManager.AudioPlays.push(audio);
 			GlobalData.GameRunTime.AudioPlayNum += 1;
+		}
+	},
+	playGameBg(){
+		if(GlobalData.GameInfoConfig.audioSupport == 1){
+			this.current = cc.audioEngine.play(this.audio_bg, true, 1);
+		}
+	},
+	stopGameBg(){
+		if(this.current != null && GlobalData.GameInfoConfig.audioSupport == 1){
+			cc.audioEngine.stop(this.current);
+		}
+	},
+	pauseGameBg(){
+		if(this.current != null && GlobalData.GameInfoConfig.audioSupport == 1){
+			cc.audioEngine.pauseEffect(this.current);
+		}
+	},
+	resumeGameBg(){
+		if(this.current != null && GlobalData.GameInfoConfig.audioSupport == 1){
+			cc.audioEngine.resumeEffect(this.current);
 		}
 	}
 });

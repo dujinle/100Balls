@@ -37,6 +37,7 @@ GlobalData = {
 	},
 	GameRunTime:{
 		ContentBallsDic:{},
+		BallNodesPool:{},
 		BallNodesDic:{},
 		CupNodesDic:{},
 		AudioPlayNum:0,
@@ -48,9 +49,12 @@ GlobalData = {
 	},
 	GameInfoConfig:{
 		audioSupport:1,
+		ballTouchBottom:0,
 		maxScore:0,
 		maxLevel:0,
 		shareTimes:0,
+		gameStatus:0,
+		linerDamp:0,
 		juNum:0
 	},
 	cdnGameConfig:{
@@ -90,7 +94,7 @@ GlobalData = {
 		BallUpLevel:1,
 		BallTotalNum:100,
 		BallGravityScale:10,
-		BallPreFall:30,
+		BallPreFall:20,
 		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
 	},
 	ScoreLevel:[1,2,3,4,5,6],

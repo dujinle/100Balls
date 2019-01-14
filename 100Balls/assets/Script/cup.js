@@ -28,16 +28,9 @@ cc.Class({
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
 		this.setColor(this.level);
-		this.node.on('position-changed', this._onNodePositionChanged, this);
-        this.node.on('rotation-change', this._onNodeRotationChanged, this);
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
 		//this.node.getComponent(cc.RigidBody).fixedRotation = false;
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
-	},
-	_onNodePositionChanged(){
-		this.node.getComponent(cc.RigidBody).syncPosition();
-	},
-	_onNodeRotationChanged(){
-		this.node.getComponent(cc.RigidBody).syncRotation();
 	},
 	setColor(level){
 		this.level = level;
@@ -45,19 +38,52 @@ cc.Class({
 		var colorMat = GlobalData.CupConfig.CupColorDic[this.color];
 		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
+	stopMove(speed){
+		this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,0);
+	},
+	resumeMove(){
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
+			if(this.moveDir == 1){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
+			}else if(this.moveDir == 2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}else if(this.moveDir == 3){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
+			}else if(this.moveDir == 4){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,this.addSpeed);
+			}
+		}else{
+			if(this.moveDir == 1){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
+			}else if(this.moveDir == 2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-this.addSpeed);
+			}else if(this.moveDir == 3){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
+			}else if(this.moveDir == 4){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,this.addSpeed);
+			}
+		}
+	},
 	startMove(){
 		this.moveDir = 1;
 		this.circleNum = 0;
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
+			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
+		}else{
+			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
+		}
 	},
 	resetStatus(){
 		this.rotateFlag = null;
 		this.isAbled = true;
 		this.touchFloorMusic = false;
-		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+		//this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
 		this.node.getComponent(cc.RigidBody).gravityScale = 0;
 		if(this.node.rotation % 360 != 0){
 			this.node.rotation = 0;
 		}
+		this.setColor(0);
 	},
 	setPos(width,height,deep,audioManager){
 		this.myId = deep;
@@ -83,7 +109,8 @@ cc.Class({
 	clearBalls(){
 		for(var key in this.balls){
 			var ball = this.balls[key];
-			ball.getComponent('ball').fallReset();
+			ball.getComponent('ball').fallReset(false);
+			ball.getComponent('ball').initLinerDamp(1);
 			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
 		}
 		this.cupScoreDic = {};
@@ -123,26 +150,12 @@ cc.Class({
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
 				if(this.node.x >= -(size.width * 2) && this.node.y >= this.height/2 && this.node.x < 0 && this.rotateFlag == null){
 					var tt = (size.width * 2) / this.speed;
-					//打开瓶盖
-					/*
-					let physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
-					for(let i = 0;i < physicsChainColliders.length;i++){
-						if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
-							physicsChainColliders[i].enabled = false;
-							break;
-						}
+					for(var key in this.balls){
+						var ball = this.balls[key];
+						ball.getComponent('ball').setLinerDamp(0);
 					}
-					*/
+					
 					var activeEnd = cc.callFunc(function(){
-						/*
-						let physicsChainColliders = self.node.getComponents(cc.PhysicsChainCollider);
-						for(let i = 0;i < physicsChainColliders.length;i++){
-							if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
-								physicsChainColliders[i].enabled = true;
-								break;
-							}
-						}
-						*/
 						self.rotateFlag = null;
 						self.clearBalls();
 						self.updateCircleNum();
@@ -152,26 +165,11 @@ cc.Class({
 			}else{
 				if(this.node.x <= (size.width * 2) && this.node.y >= this.height/2 && this.node.x > 0 && this.rotateFlag == null){
 					var tt = (size.width * 2) / this.speed;
-					//打开瓶盖
-					/*
-					let physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
-					for(let i = 0;i < physicsChainColliders.length;i++){
-						if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
-							physicsChainColliders[i].enabled = false;
-							break;
-						}
+					for(var key in this.balls){
+						var ball = this.balls[key];
+						ball.getComponent('ball').setLinerDamp(0);
 					}
-					*/
 					var activeEnd = cc.callFunc(function(){
-						/*
-						let physicsChainColliders = self.node.getComponents(cc.PhysicsChainCollider);
-						for(let i = 0;i < physicsChainColliders.length;i++){
-							if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.cupLine){
-								physicsChainColliders[i].enabled = true;
-								break;
-							}
-						}
-						*/
 						self.rotateFlag = null;
 						self.clearBalls();
 						self.updateCircleNum();
@@ -208,6 +206,9 @@ cc.Class({
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
 			contact.disabled = true;
 			if(this.balls[otherCollider.node.uuid] == null){
+				var ball = otherCollider.node;
+				var ballCom = ball.getComponent('ball');
+				ballCom.initLinerDamp(0.5);
 				this.balls[otherCollider.node.uuid] = otherCollider.node;
 				this.setCupScoreLabel(otherCollider.node);
 			}

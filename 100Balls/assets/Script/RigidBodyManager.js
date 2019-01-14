@@ -2,45 +2,15 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        physisContentClose:null,
-		physisContentOpen:null,
 		audioManager:cc.Node,
-		openNode:cc.Node,
-		closeNode:cc.Node,
     },
     onLoad () {
-		this.openNode.active = false;
-		this.closeNode.active = true;
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
+	},
 
-		var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
-		for(var i = 0;i < physicsChainColliders.length;i++){
-			if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.contentClose){
-				this.physisContentClose = physicsChainColliders[i];
-			}
-			if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.contentOpen){
-				this.physisContentOpen = physicsChainColliders[i];
-			}
-		}
-
-	},
-	openContent(){
-		this.openNode.active = true;
-		this.closeNode.active = false;
-		if(this.physisContentClose != null){
-			this.physisContentClose.enabled = false;
-		}
-	},
-	closeContent(){
-		this.openNode.active = false;
-		this.closeNode.active = true;
-		if(this.physisContentClose != null){
-			this.physisContentClose.enabled = true;
-		}
-	},
     // 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
-		//碰到contentLine则说明小球下落了		
+		//碰到contentLine则说明小球下落了
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.contentLine){
 			console.log('fall ball start');
 			contact.disabled = true;
@@ -73,11 +43,10 @@ cc.Class({
 		var self = this;
 		//球调入地板
 		if(selfCollider.tag == GlobalData.RigidBodyTag.floor && otherCollider.tag == GlobalData.RigidBodyTag.ball){
-			this.fallRemove(otherCollider.node);
+			this.fallLine(otherCollider.node);
 		}
     },
-    fallRemove (node) {
-		var self = this;
+	fallLine(node){
 		var ballCom = node.getComponent('ball');
 		if(ballCom.isAbled){
 			ballCom.isAbled = false;
@@ -85,16 +54,7 @@ cc.Class({
 				type:'FallLine'
 			});
 			this.node.dispatchEvent(this.EventCustom);
-			var destroyFunc = cc.callFunc(function(){
-				self.EventCustom.setUserData({
-					type:'FallRemove',
-					node:node
-				});
-				self.node.dispatchEvent(self.EventCustom);
-			},this);
-			this.node.runAction(cc.sequence(cc.delayTime(0.5),destroyFunc));
+			ballCom.fallRemove();
 		}
-	},
-    update (dt) {
 	},
 });

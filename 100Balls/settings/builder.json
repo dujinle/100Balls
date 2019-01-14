@@ -3,7 +3,8 @@
   "appSecret": "",
   "encryptJs": true,
   "excludeScenes": [
-    "2c6fd374-af4c-42ae-936d-5af53ed6faca"
+    "2c6fd374-af4c-42ae-936d-5af53ed6faca",
+    "2d2f792f-a40c-49bb-a189-ed176a246e49"
   ],
   "fb-instant-games": {},
   "includeAnySDK": false,
@@ -28,7 +29,7 @@
     "orientation": "portrait"
   },
   "renderMode": "0",
-  "startScene": "2d2f792f-a40c-49bb-a189-ed176a246e49",
+  "startScene": "e59dac53-0b6c-4972-bfe3-9022c82657e7",
   "title": "100Balls",
   "webOrientation": "auto",
   "wechatgame": {
