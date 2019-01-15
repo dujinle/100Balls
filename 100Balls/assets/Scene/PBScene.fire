@@ -75,13 +75,16 @@
       },
       {
         "__id__": 24
+      },
+      {
+        "__id__": 26
       }
     ],
     "_tag": -1,
     "_active": true,
     "_components": [
       {
-        "__id__": 26
+        "__id__": 28
       }
     ],
     "_prefab": null,
@@ -760,6 +763,39 @@
       "__uuid__": "438fafbc-b267-4e1b-8e96-9ddeaa9f725c"
     },
     "fileId": "aepYlvdC5A4bBDNR31A/s5",
+    "sync": true
+  },
+  {
+    "__type__": "cc.Node",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_id": "9aJrUXD5hNuag6LLAM6XaN",
+    "_prefab": {
+      "__id__": 27
+    },
+    "_name": "AudioManager",
+    "_active": true,
+    "_position": {
+      "__type__": "cc.Vec2",
+      "x": -320,
+      "y": -568
+    },
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_localZOrder": 0,
+    "_globalZOrder": 0
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 26
+    },
+    "asset": {
+      "__uuid__": "94dec4d1-50af-444e-a024-a49fad749fcd"
+    },
+    "fileId": "9aJrUXD5hNuag6LLAM6XaN",
     "sync": true
   },
   {

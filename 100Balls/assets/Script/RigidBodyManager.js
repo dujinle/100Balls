@@ -2,12 +2,14 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-		audioManager:cc.Node,
+		audioManager:null,
     },
     onLoad () {
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 	},
-
+	initAudio(audioManager){
+		this.audioManager = audioManager;
+	},
     // 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
 		//碰到contentLine则说明小球下落了

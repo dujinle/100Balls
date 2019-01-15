@@ -94,7 +94,7 @@ cc.Class({
 			if(cupNode != null){
 				this.rigidCupPool.put(cupNode);
 				var cupCom = cupNode.getComponent('cup');
-				cupCom.resetStatus();
+				cupCom.resetStatus(true);
 				delete this.speedArray[cupNode.uuid];
 			}
 		}
@@ -134,7 +134,7 @@ cc.Class({
 		if(cupNode != null){
 			this.rigidCupPool.put(cupNode);
 			var cupCom = cupNode.getComponent('cup');
-			cupCom.resetStatus();
+			cupCom.resetStatus(true);
 			delete this.speedArray[cupNode.uuid];
 		}
 	},

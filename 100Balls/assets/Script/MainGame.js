@@ -9,13 +9,14 @@ cc.Class({
 		balls:cc.Node,
 		rigidBalls:cc.Node,
 		rigidBody:cc.Node,
+		rigidBodyCall:cc.Node,
 		startButton:cc.Node,
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
 		startGameBoard:cc.Node,
 		mainGameBoard:cc.Node,
 		pauseButton:cc.Node,
-		audioManager:cc.Node,
+		audioManager:null,
 		cupSpeed:0,
     },
 
@@ -42,7 +43,12 @@ cc.Class({
 		this.node.on("BallFallEvent",this.BallFallEvent,this);
 		this.startButton.getComponent(cc.Button).interactable = false;
 		//打开物理属性 碰撞检测
-		cc.director.getPhysicsManager().enabled = true;
+		let physicsManager = cc.director.getPhysicsManager();
+		physicsManager.enabled = true;
+		physicsManager.enabledAccumulator = true;
+		physicsManager.FIXED_TIME_STEP = 0.5;
+		physicsManager.enabledAccumulator = true;//
+		//physicsManager.update(0.5);//自己控制速度
 		//cc.director.getCollisionManager().enabled = true;
 		/*
 		cc.director.getPhysicsManager().debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
@@ -59,7 +65,7 @@ cc.Class({
 		var self = this;
 		//异步加载动态数据
 		this.rate = 0;
-		this.resLength = 7;
+		this.resLength = 8;
 		GlobalData.assets = {};
 		this.loadUpdate = function(){
 			console.log("this.rate:" + self.rate);
@@ -80,6 +86,9 @@ cc.Class({
 			for(var i = 0;i < assets.length;i++){
 				GlobalData.assets[assets[i].name] = assets[i];
 				self.rate = self.rate + 1;
+				if(assets[i].name == 'AudioManager'){
+					self.audioManager = cc.instantiate(assets[i]);
+				}
 				console.log("load res prefab:" + assets[i].name);
 			}
 		});
@@ -98,11 +107,12 @@ cc.Class({
 		this.initBalls();
 		this.initFallBalls();
 		this.pauseButton.active = true;
-		GlobalData.GameInfoConfig.gameStatus = 0;
+		this.rigidBodyCall.getComponent('RigidBodyManager').initAudio(this.audioManager);
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);
 		this.trickNode.getComponent('TrackManager').startTrack();
-		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
 		this.audioManager.getComponent('AudioManager').playGameBg();
+		GlobalData.GameInfoConfig.gameStatus = 0;
+		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
 	},
 	//所有面板的button按钮 返回函数
 	panelButtonCb(event,customEventData){
@@ -229,6 +239,7 @@ cc.Class({
 		}
 		else if(data.type == 'UpdateCircle'){
 			this.levelLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.CircleLevel;
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.LevelBell);
 			//如果球体升级则进行颜色变化
 			var self = this;
 			var trickNodeSize = this.trickNode.getContentSize();
@@ -267,6 +278,7 @@ cc.Class({
 					if(CupNode != -1){
 						let cupCom = CupNode.getComponent('cup');
 						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
+							self.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 							cupCom.setColor(cupCom.level + 1);
 						}
 					}
@@ -405,6 +417,7 @@ cc.Class({
 		if(GlobalData.GameRunTime.CupAbledNum <= 0 || GlobalData.GameRunTime.BallAbledNum <= 0){
 			this.trickNode.getComponent('TrackManager').stopTrack();
 			this.audioManager.getComponent('AudioManager').stopGameBg();
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
 			this.showPBGameScene({
 				scene:'FinishGameScene',
 				type:null

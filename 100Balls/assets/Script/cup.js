@@ -73,7 +73,7 @@ cc.Class({
 			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
 		}
 	},
-	resetStatus(){
+	resetStatus(flag){
 		this.rotateFlag = null;
 		this.isAbled = true;
 		this.touchFloorMusic = false;
@@ -83,7 +83,9 @@ cc.Class({
 		if(this.node.rotation % 360 != 0){
 			this.node.rotation = 0;
 		}
-		this.setColor(0);
+		if(flag == true){
+			this.setColor(0);
+		}
 	},
 	setPos(width,height,deep,audioManager){
 		this.myId = deep;
@@ -116,7 +118,7 @@ cc.Class({
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
 		this.balls = {};
-		this.resetStatus();
+		this.resetStatus(false);
 	},
 	getXY(width,height,radian){
 		let angle = radian %360 / 180 * Math.PI;

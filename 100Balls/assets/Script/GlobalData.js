@@ -7,6 +7,8 @@ GlobalData = {
 		//Cup中的音乐
 		CupTouchFloor:3,
 		GameFinish:4,
+		LevelBell:5,
+		CupLevelBell:6,
 		AudioEnginMore:8,
 		AudioPlays:[]
 	},
