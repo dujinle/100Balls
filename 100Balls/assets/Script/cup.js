@@ -39,10 +39,17 @@ cc.Class({
 		var colorMat = GlobalData.CupConfig.CupColorDic[this.color];
 		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
+	//杯子停止运动
 	stopMove(speed){
 		this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,0);
+		this.node.pauseAllActions();
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			ball.getComponent('ball').setLinerDamp(50);
+		}
 	},
-	resumeMove(){
+	syncSpeed(speed){
+		this.addSpeed = speed;
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
 			if(this.moveDir == 1){
 				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(this.addSpeed,0);
@@ -53,7 +60,8 @@ cc.Class({
 			}else if(this.moveDir == 4){
 				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,this.addSpeed);
 			}
-		}else{
+		}
+		else{
 			if(this.moveDir == 1){
 				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-this.addSpeed,0);
 			}else if(this.moveDir == 2){
@@ -64,6 +72,14 @@ cc.Class({
 				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,this.addSpeed);
 			}
 		}
+	},
+	resumeMove(){
+		this.syncSpeed(this.addSpeed);
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			ball.getComponent('ball').setLinerDamp(0);
+		}
+		this.node.resumeAllActions();
 	},
 	startMove(){
 		this.moveDir = 1;

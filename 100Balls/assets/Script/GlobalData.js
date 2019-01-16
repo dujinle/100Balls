@@ -79,6 +79,7 @@ GlobalData = {
 		CupCreatNum:7,
 		CupMoveSpeed:100,
 		CupMoveASpeed:1000,
+		CupSpeedArate:0.2,
 		CupMoveDir:'right',
 		CupUpLevel:3
 	},
