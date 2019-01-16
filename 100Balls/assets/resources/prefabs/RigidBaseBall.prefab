@@ -107,6 +107,7 @@
     "color": null,
     "isInCup": false,
     "isAbled": true,
+    "isStatic": false,
     "touchCupMusic": false,
     "touchFloorMusic": false
   },
@@ -121,8 +122,8 @@
     "_type": 2,
     "_allowSleep": true,
     "_gravityScale": 10,
-    "_linearDamping": 10,
-    "_angularDamping": 10,
+    "_linearDamping": 0,
+    "_angularDamping": 0,
     "_linearVelocity": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -145,7 +146,7 @@
     "_density": 1,
     "_sensor": false,
     "_friction": 0,
-    "_restitution": 0.2,
+    "_restitution": 0,
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
@@ -160,7 +161,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "063ecfd0-efd8-4453-9095-16619c4bf16a"
     },
     "fileId": "4fd+lqDltBv6sTG8H3jTJD",
     "sync": false

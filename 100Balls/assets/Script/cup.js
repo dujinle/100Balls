@@ -15,6 +15,7 @@ cc.Class({
 		color:null,
 		innerNode:cc.Node,
 		isAbled:true,
+		lastPosition:null,
 		audioManager:null,
     },
     onLoad () {
@@ -75,6 +76,7 @@ cc.Class({
 	},
 	resetStatus(flag){
 		this.rotateFlag = null;
+		this.lastPosition = null;
 		this.isAbled = true;
 		this.touchFloorMusic = false;
 		//this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
@@ -99,6 +101,7 @@ cc.Class({
 			var pos = this.getXY(width,height,330);
 			this.node.setPosition(pos);
 		}
+		this.lastPosition = this.node.getPosition();
 	},
 	UpLevelIsValid(){
 		if(GlobalData.CupConfig.CupMoveDir == 'right' && this.node.x >= this.width/2){
@@ -152,11 +155,12 @@ cc.Class({
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
 				if(this.node.x >= -(size.width * 2) && this.node.y >= this.height/2 && this.node.x < 0 && this.rotateFlag == null){
 					var tt = (size.width * 2) / this.speed;
+					/*
 					for(var key in this.balls){
 						var ball = this.balls[key];
 						ball.getComponent('ball').setLinerDamp(0);
 					}
-					
+					*/
 					var activeEnd = cc.callFunc(function(){
 						self.rotateFlag = null;
 						self.clearBalls();
@@ -167,10 +171,12 @@ cc.Class({
 			}else{
 				if(this.node.x <= (size.width * 2) && this.node.y >= this.height/2 && this.node.x > 0 && this.rotateFlag == null){
 					var tt = (size.width * 2) / this.speed;
+					/*
 					for(var key in this.balls){
 						var ball = this.balls[key];
 						ball.getComponent('ball').setLinerDamp(0);
 					}
+					*/
 					var activeEnd = cc.callFunc(function(){
 						self.rotateFlag = null;
 						self.clearBalls();
@@ -200,6 +206,15 @@ cc.Class({
 			}
 		}
 	},
+	syncBallPosition(){
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			var ballCom = ball.getComponent('ball');
+			if(ballCom.isStatic == true){
+				ballCom.setMyPosition(this.moveDir,this.addSpeed);
+			}
+		}
+	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
 		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
@@ -210,7 +225,10 @@ cc.Class({
 			if(this.balls[otherCollider.node.uuid] == null){
 				var ball = otherCollider.node;
 				var ballCom = ball.getComponent('ball');
-				ballCom.initLinerDamp(0.5);
+				ballCom.isInCup = true;
+				ballCom.unMoveStop();
+				console.log('ball in cup:',ball.getComponent(cc.RigidBody));
+				//ballCom.initLinerDamp(1);
 				this.balls[otherCollider.node.uuid] = otherCollider.node;
 				this.setCupScoreLabel(otherCollider.node);
 			}

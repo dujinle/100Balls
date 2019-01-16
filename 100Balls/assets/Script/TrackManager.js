@@ -16,7 +16,7 @@ cc.Class({
 		var cupSize = null;
 		this.audioManager = audioManager;
 		var trickSize = this.node.getContentSize();
-		for(var i = 0;i < GlobalData.CupConfig.CupCreatNum;i++){
+		for(var i = 0;i < 1;i++){
 			var rigidCup = cc.instantiate(GlobalData.assets['ChainCup']);
 			cupSize = rigidCup.getContentSize();
 			this.rigidCupPool.put(rigidCup);
@@ -51,7 +51,12 @@ cc.Class({
 		this.curCupIdx = 0;
 		var trickSize = this.node.getContentSize();
 		if(this.rigidCupPool.size() > 0){
-			var cupNode = this.rigidCupPool.get();
+			var cupNode = null;
+			if(this.rigidCupPool.size() > 0){
+				cupNode = this.rigidCupPool.get();
+			}else{
+				cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
+			}
 			var cupCom = cupNode.getComponent('cup');
 			this.node.addChild(cupNode);
 			cupCom.setPos(trickSize.width,trickSize.height,this.curCupIdx,this.audioManager);
@@ -62,7 +67,7 @@ cc.Class({
 			cupCom.startMove();
 			this.curCupIdx += 1;
 			//this.schedule(this.updateMove,0.01);
-			this.schedule(this.updateMoveV2,0.01);
+			this.schedule(this.updateMoveV2,0.1);
 			this.speedArray[cupNode.uuid] = cupCom.addSpeed;
 		}
 	},
@@ -85,7 +90,7 @@ cc.Class({
 				cupCom.resumeMove();
 			}
 		}
-		this.schedule(this.updateMoveV2,0.01);
+		this.schedule(this.updateMoveV2,0.1);
 	},
 	removeAllCups(){
 		this.curCupIdx = 0;
@@ -109,7 +114,12 @@ cc.Class({
 		if(nodeCom.myId == (this.curCupIdx - 1)){
 			var pos = this.idxArray[nodeCom.myId];
 			if(node.x == pos.x && node.y <= pos.y){
-				var cupNode = this.rigidCupPool.get();
+				var cupNode = null;
+				if(this.rigidCupPool.size() > 0){
+					cupNode = this.rigidCupPool.get();
+				}else{
+					cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
+				}
 				var cupCom = cupNode.getComponent('cup');
 				this.node.addChild(cupNode);
 				cupCom.setPos(trickSize.width,trickSize.height,this.curCupIdx,this.audioManager);
@@ -148,6 +158,8 @@ cc.Class({
 				this.addCup(cupNode);
 				cupCom.checkRotate();
 				cupCom.checkFall();
+				//cupCom.syncBallPosition();
+				//cupCom.lastPosition = cupNode.getPosition();
 			}
 		}
 	},

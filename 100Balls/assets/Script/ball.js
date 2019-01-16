@@ -6,6 +6,7 @@ cc.Class({
 		color:null,
 		isInCup:false,
 		isAbled:true,
+		isStatic:false,
 		touchCupMusic:false,
 		touchFloorMusic:false,
     },
@@ -27,6 +28,8 @@ cc.Class({
 		this.touchCupMusic = false;
 		this.touchFloorMusic = false;
 		this.isAbled = true;
+		this.isStatic = false;
+		this.isInCup = false;
 		if(flag == true){
 			this.setColor(0);
 		}
@@ -38,9 +41,41 @@ cc.Class({
 		var colorMat = GlobalData.BallConfig.BallColorDic[this.color];
 		this.node.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
+	setMyPosition(myDir,speed){
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
+			if(myDir == 1){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(speed,0);
+			}else if(myDir == 2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-speed);
+			}else if(myDir == 3){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-speed,0);
+			}else if(myDir == 4){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,speed);
+			}
+		}else{
+			if(myDir == 1){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(-speed,0);
+			}else if(myDir == 2){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,-speed);
+			}else if(myDir == 3){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(speed,0);
+			}else if(myDir == 4){
+				this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,speed);
+			}
+		}
+	},
 	setLinerDamp(num){
-		this.node.getComponent(cc.RigidBody).linearDamping = num;
-		this.node.getComponent(cc.RigidBody).angularDamping = num;
+		if(num == 0){
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+			this.isStatic = false;
+		}else{
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+			this.node.getComponent(cc.RigidBody).linearVelocity = cc.p(0,0);
+			this.node.getComponent(cc.RigidBody).angularVelocity = 0;
+			this.isStatic = true;
+		}
+		//this.node.getComponent(cc.RigidBody).linearDamping = num;
+		//this.node.getComponent(cc.RigidBody).angularDamping = num;
 	},
 	unMoveStop(){
 		this.unschedule(this.moveStop);
@@ -53,7 +88,7 @@ cc.Class({
 		var callFunc = cc.callFunc(
 			function(){
 				GlobalData.GameRunTime.BallNodesPool.put(self.node);
-				self.fallReset(false);
+				self.fallReset(true);
 			}
 		);
 		this.node.runAction(cc.sequence(cc.delayTime(0.5),callFunc));

@@ -219,6 +219,7 @@
     "color": null,
     "isInCup": false,
     "isAbled": true,
+    "isStatic": false,
     "touchCupMusic": false,
     "touchFloorMusic": false
   },
@@ -383,6 +384,7 @@
       "__id__": 9
     },
     "isAbled": true,
+    "lastPosition": null,
     "audioManager": null
   },
   {
@@ -514,7 +516,7 @@
     "_density": 10,
     "_sensor": false,
     "_friction": 0,
-    "_restitution": 0,
+    "_restitution": 0.2,
     "body": null,
     "loop": false,
     "points": [

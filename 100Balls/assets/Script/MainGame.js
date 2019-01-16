@@ -45,9 +45,9 @@ cc.Class({
 		//打开物理属性 碰撞检测
 		let physicsManager = cc.director.getPhysicsManager();
 		physicsManager.enabled = true;
-		physicsManager.enabledAccumulator = true;
-		physicsManager.FIXED_TIME_STEP = 0.5;
-		physicsManager.enabledAccumulator = true;//
+		//physicsManager.enabledAccumulator = true;
+		//physicsManager.FIXED_TIME_STEP = 0.5;
+		//physicsManager.enabledAccumulator = true;//
 		//physicsManager.update(0.5);//自己控制速度
 		//cc.director.getCollisionManager().enabled = true;
 		/*
@@ -203,14 +203,6 @@ cc.Class({
 				this.fallOneBall();
 			}
 			this.finishGame();
-		}else if(data.type == 'FallRemove'){
-			var rigidBall = data.node;
-			if(rigidBall != null){
-				//this.rigidBallPool.put(rigidBall);
-				GlobalData.GameRunTime.BallAbledNum -= 1;
-				//rigidBall.getComponent('ball').fallReset(true);
-			}
-			
 		}else if(data.type == 'CupRemove'){
 			this.trickNode.getComponent('TrackManager').removeCup(data.uuid);
 			GlobalData.GameRunTime.CupAbledNum -= 1;
@@ -342,20 +334,6 @@ cc.Class({
 			rigidBall.getComponent('ball').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
-		}
-	},
-	linerDampUp(dt){
-		GlobalData.GameInfoConfig.linerDamp += dt * 20;
-		if(GlobalData.GameInfoConfig.gameStatus == 0){
-			for(var key in GlobalData.GameRunTime.ContentBallsDic){
-				var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
-				rigidBall.getComponent('ball').setLinerDamp(GlobalData.GameInfoConfig.linerDamp);
-			}
-		}else{
-			this.unschedule(this.linerDampUp);
-		}
-		if(GlobalData.GameInfoConfig.linerDamp >= 50){
-			this.unschedule(this.linerDampUp);
 		}
 	},
 	fallOneBall(){
