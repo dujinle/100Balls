@@ -54,6 +54,7 @@ GlobalData = {
 		ballTouchBottom:0,
 		maxScore:0,
 		maxLevel:0,
+		addCupNum:0,
 		shareTimes:0,
 		gameStatus:0,
 		linerDamp:0,
@@ -100,6 +101,12 @@ GlobalData = {
 		BallPreFall:20,
 		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
 	},
+	BallInCupPos:[
+		[21,-35],[0,-39],[-21,-35],
+		[22,-15],[0,-19],[-22,-15],
+		[23,5],[0,1],[-23,5],
+		[24,25],[0,21],[-24,25]
+	],
 	ScoreLevel:[1,2,3,4,5,6],
 	cdnShareImages:["res/raw-assets/resources/shareImages/shareDefault.d3b6b.png"],
 	cdnTexts:["你介意男生玩这个游戏吗?"]

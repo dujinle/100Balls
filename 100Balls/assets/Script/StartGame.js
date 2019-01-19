@@ -1,4 +1,5 @@
 var ThirdAPI = require('ThirdAPI');
+var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -11,6 +12,7 @@ cc.Class({
 		audioManager:null,
     },
     onLoad () {
+		/*
 		cc.eventManager.addListener({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
             swallowTouches: true,
@@ -24,6 +26,7 @@ cc.Class({
 			}
          }, this.node);
 		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
+		*/
 	},
 	start(){
 		if(GlobalData.GameInfoConfig.audioSupport == 1){
@@ -40,10 +43,13 @@ cc.Class({
 		if(this.audioManager != null){
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
 		}
+		EventManager.emit({type:'StartGame'});
+		/*
 		this.EventCustom.setUserData({
 			type:'StartGame'
 		});
 		this.node.dispatchEvent(this.EventCustom);
+		*/
 	},
 	soundButtonCb(){
 		if(GlobalData.GameInfoConfig.audioSupport == 0){
@@ -74,15 +80,21 @@ cc.Class({
 		if(this.audioManager != null){
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
 		}
+		EventManager.emit({type:'RankView'});
+		/*
 		this.EventCustom.setUserData({type:'RankView'});
 		this.node.dispatchEvent(this.EventCustom);
+		*/
 	},
 	groupRankButtonCb(){
 		if(this.audioManager != null){
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
 		}
+		EventManager.emit({type:'RankGroupView'});
+		/*
 		this.EventCustom.setUserData({type:'RankGroupView'});
 		this.node.dispatchEvent(this.EventCustom);
+		*/
 	},
 	shareSuccessCb(type, shareTicket, arg){
 		console.log(type, shareTicket, arg);

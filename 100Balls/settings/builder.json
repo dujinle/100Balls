@@ -1,10 +1,16 @@
 {
+  "android-instant": {
+    "REMOTE_SERVER_ROOT": "",
+    "host": "",
+    "pathPattern": "",
+    "recordPath": "",
+    "scheme": "https",
+    "skipRecord": false
+  },
   "appKey": "",
   "appSecret": "",
   "encryptJs": true,
-  "excludeScenes": [
-    "2c6fd374-af4c-42ae-936d-5af53ed6faca"
-  ],
+  "excludeScenes": [],
   "fb-instant-games": {},
   "includeAnySDK": false,
   "includeSDKBox": false,
@@ -21,13 +27,12 @@
     "portrait": false,
     "upsideDown": false
   },
-  "packageName": "org.cocos2d.helloworld",
+  "packageName": "org.cocos2d.100Balls",
   "privateKey": "",
   "qqplay": {
     "REMOTE_SERVER_ROOT": "",
     "orientation": "portrait"
   },
-  "renderMode": "0",
   "startScene": "e59dac53-0b6c-4972-bfe3-9022c82657e7",
   "title": "100Balls",
   "webOrientation": "auto",
@@ -38,6 +43,6 @@
     "orientation": "portrait",
     "subContext": "wx-open-data-project"
   },
-  "xxteaKey": "77430678-8939-45",
+  "xxteaKey": "1a4702de-e984-47",
   "zipCompressJs": true
 }

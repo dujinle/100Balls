@@ -1,5 +1,6 @@
 var util = require('util');
 var ThirdAPI = require('ThirdAPI');
+var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -8,8 +9,8 @@ cc.Class({
 		cupContent:cc.Node,
 		balls:cc.Node,
 		rigidBalls:cc.Node,
-		rigidBody:cc.Node,
-		rigidBodyCall:cc.Node,
+		contentCL:cc.Node,
+		floorNode:cc.Node,
 		startButton:cc.Node,
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
@@ -27,7 +28,7 @@ cc.Class({
             swallowTouches: true,
             // 设置是否吞没事件，在 onTouchBegan 方法返回 true 时吞没
             onTouchBegan: function (touch, event) {	
-				self.rigidBody.getComponent('RigidBodyUnCallManager').openContent();
+				self.contentCL.getComponent('ContentCL').openContent();
 				GlobalData.GameInfoConfig.gameStatus = 1;
                 return true;
             },
@@ -35,31 +36,25 @@ cc.Class({
             },
             onTouchEnded: function (touch, event) {            // 点击事件结束处理
 				GlobalData.GameInfoConfig.gameStatus = 0;
-				self.rigidBody.getComponent('RigidBodyUnCallManager').closeContent();
+				self.contentCL.getComponent('ContentCL').closeContent();
 			}
         }, this.node);
 		ThirdAPI.loadLocalData();
 		this.loadDataSync();
-		this.node.on("BallFallEvent",this.BallFallEvent,this);
+		EventManager.on(this.BallFallEvent,this);
 		this.startButton.getComponent(cc.Button).interactable = false;
 		//打开物理属性 碰撞检测
-		let physicsManager = cc.director.getPhysicsManager();
-		physicsManager.enabled = true;
-		//physicsManager.enabledAccumulator = true;
-		//physicsManager.FIXED_TIME_STEP = 0.5;
-		//physicsManager.enabledAccumulator = true;//
-		//physicsManager.update(0.5);//自己控制速度
-		//cc.director.getCollisionManager().enabled = true;
-		/*
-		cc.director.getPhysicsManager().debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
-			cc.PhysicsManager.DrawBits.e_pairBit |
-			cc.PhysicsManager.DrawBits.e_centerOfMassBit |
-			cc.PhysicsManager.DrawBits.e_jointBit |
-			cc.PhysicsManager.DrawBits.e_shapeBit
-			;
-		*/
-		//cc.director.getCollisionManager().enabledDebugDraw = true;
-		//cc.director.getCollisionManager().enabledDrawBoundingBox = true;
+		//如果用了物理引擎，可以通过修改游戏帧率和检测的步长降低检测频率，提高性能。
+		var pymanager = cc.director.getPhysicsManager();
+		pymanager.enabled = true;
+		// 开启物理步长的设置
+		//pymanager.enabledAccumulator = true;
+		// 物理步长，默认 FIXED_TIME_STEP 是 1/60
+		//pymanager.FIXED_TIME_STEP = 1/50;
+		// 每次更新物理系统处理速度的迭代次数，默认为 10
+		//pymanager.VELOCITY_ITERATIONS = 8;
+		// 每次更新物理系统处理位置的迭代次数，默认为 10
+		//pymanager.POSITION_ITERATIONS = 8;
 	},
 	loadDataSync(){
 		var self = this;
@@ -100,6 +95,7 @@ cc.Class({
 		this.startGameBoard.active = true;
 		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.startGameBoard.getComponent('StartGame').audioManager = this.audioManager;
+		
 		GlobalData.GameRunTime.BallNodesPool = new cc.NodePool();
 	},
 	//第一次进入游戏初始化数据
@@ -107,12 +103,12 @@ cc.Class({
 		this.initBalls();
 		this.initFallBalls();
 		this.pauseButton.active = true;
-		this.rigidBodyCall.getComponent('RigidBodyManager').initAudio(this.audioManager);
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);
+		this.floorNode.getComponent('FloorManager').initAudio(this.audioManager);
 		this.trickNode.getComponent('TrackManager').startTrack();
 		this.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameInfoConfig.gameStatus = 0;
-		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
+		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum,this.floorNode.active);
 	},
 	//所有面板的button按钮 返回函数
 	panelButtonCb(event,customEventData){
@@ -148,54 +144,13 @@ cc.Class({
 				var yy = (size.height + 3) * ylevel - size.height/2;
 				let xlevel = GlobalData.BallConfig.BallRowArray[i]/2 - j;
 				var xx = (size.width + 3) * xlevel - size.width/2;
-				ball.setPosition(cc.p(xx,yy));
+				ball.setPosition(cc.v2(xx,yy));
 				GlobalData.GameRunTime.BallNodesDic[ball.uuid] = ball;
 			}
 		}
 	},
-	initCups(deep){
-		if(deep >= GlobalData.CupConfig.CupCreatNum){
-			return;
-		}
+	BallFallEvent(data){
 		var self = this;
-		var trickSize = this.trickNode.getContentSize();
-		var tt = trickSize.height/2 / this.cupSpeed;
-		console.log(trickSize,tt,this.cupSpeed);
-		var callBack = cc.callFunc(function(){
-			var cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
-			self.trickNode.addChild(cupNode);
-			GlobalData.GameRunTime.CupNodesDic[cupNode.uuid] = cupNode;
-			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				var pos = cupNode.getComponent('cup').getXY(trickSize.width,trickSize.height,30);
-				cupNode.setPosition(pos);
-			}else{
-				var pos = cupNode.getComponent('cup').getXY(trickSize.width,trickSize.height,330);
-				cupNode.setPosition(pos);
-			}
-			cupNode.getComponent('cup').myId = deep;	
-			if(deep == 0){
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed);
-			}else if(deep == 1){
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,GlobalData.CupConfig.CupMoveASpeed/4);
-			}else{
-				cupNode.getComponent('cup').startMove(trickSize.width,trickSize.height,self.cupSpeed,self.cupSpeed);
-			}
-			self.initCups(deep + 1);
-		},this);
-		if(deep == 0){
-			this.node.runAction(cc.sequence(cc.delayTime(0),callBack));
-		}else if(deep == 1){
-			this.node.runAction(cc.sequence(cc.delayTime(1),callBack));
-		}else if(deep == 2){
-			this.node.runAction(cc.sequence(cc.delayTime(0.2),callBack));
-		}else{
-			this.node.runAction(cc.sequence(cc.delayTime(tt),callBack));
-		}
-		
-	},
-	BallFallEvent(event){
-		var self = this;
-		var data = event.getUserData();
 		console.log(data);
 		if(data.type == 'FallLine'){
 			GlobalData.GameRunTime.BallAbledNum -= 1;
@@ -247,7 +202,7 @@ cc.Class({
 					}
 					let BallNode = util.getRandomObjForArray(UpLevelIsValid);
 					if(BallNode != -1){
-						var ballCom = BallNode.getComponent('ball');
+						var ballCom = BallNode.getComponent('RigidBall');
 						if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
 							ballCom.setColor(ballCom.level + 1);
 						}
@@ -260,7 +215,9 @@ cc.Class({
 					for(let key in GlobalData.GameRunTime.CupNodesDic){
 						let cup = GlobalData.GameRunTime.CupNodesDic[key];
 						if(cup != null && cup.isValid){
-							let cupCom = cup.getComponent('cup');
+							let cupCom = cup.getComponent('RigidCup');
+							let speed = cupCom.addSpeed * (1 + GlobalData.CupConfig.CupSpeedArate);
+							cupCom.syncSpeed(speed);
 							if(cupCom.UpLevelIsValid()){
 								UpLevelIsValid.push(cup);
 							}
@@ -268,7 +225,7 @@ cc.Class({
 					}
 					let CupNode = util.getRandomObjForArray(UpLevelIsValid);
 					if(CupNode != -1){
-						let cupCom = CupNode.getComponent('cup');
+						let cupCom = CupNode.getComponent('RigidCup');
 						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
 							self.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 							cupCom.setColor(cupCom.level + 1);
@@ -331,7 +288,7 @@ cc.Class({
 			}
 			this.rigidBalls.addChild(rigidBall);
 			rigidBall.setPosition(ball.getPosition());
-			rigidBall.getComponent('ball').initAudio(this.audioManager);
+			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
 		}
@@ -348,7 +305,7 @@ cc.Class({
 			}
 			this.rigidBalls.addChild(rigidBall);
 			rigidBall.setPosition(ball.getPosition());
-			rigidBall.getComponent('ball').initAudio(this.audioManager);
+			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			console.log('fallOneBall:',GlobalData.GameRunTime.BallNodesPool.size());
 		}
@@ -407,17 +364,17 @@ cc.Class({
 		if(data.scene == 'FinishGameScene'){
 			this.finishGameScene = cc.instantiate(GlobalData.assets[data.scene]);
 			this.node.addChild(this.finishGameScene);
-			this.finishGameScene.setPosition(cc.p(0,0));
+			this.finishGameScene.setPosition(cc.v2(0,0));
 			this.finishGameScene.getComponent("FinishGame").show();
 		}else if(data.scene == 'RankGameScene'){
 			this.rankGameScene = cc.instantiate(GlobalData.assets[data.scene]);
 			this.node.addChild(this.rankGameScene);
-			this.rankGameScene.setPosition(cc.p(0,0));
+			this.rankGameScene.setPosition(cc.v2(0,0));
 			this.rankGameScene.getComponent("RankGame").show(data.type);
 		}else if(data.scene == 'PauseGameScene'){
 			this.pauseGameScene = cc.instantiate(GlobalData.assets['PauseGameScene']);
 			this.node.addChild(this.pauseGameScene);
-			this.pauseGameScene.setPosition(cc.p(0,0));
+			this.pauseGameScene.setPosition(cc.v2(0,0));
 			this.pauseGameScene.getComponent("PauseGame").showPause();
 		}
 	},

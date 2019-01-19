@@ -12,12 +12,6 @@
     ],
     [
       false,
-      false,
-      true,
-      true
-    ],
-    [
-      false,
       true,
       true,
       true,
@@ -26,12 +20,19 @@
     [
       false,
       true,
+      false,
+      null,
+      true
+    ],
+    [
+      false,
       true,
+      false,
       false
     ],
     [
       false,
-      false,
+      true,
       true,
       false,
       false
@@ -44,10 +45,10 @@
   "fit-width": false,
   "group-list": [
     "default",
-    "rigid",
-    "ball",
-    "cup",
-    "ball_touch_uncall"
+    "Ball",
+    "Cup",
+    "Content",
+    "Floor"
   ],
   "simulator-orientation": false,
   "simulator-resolution": {

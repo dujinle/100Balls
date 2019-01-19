@@ -8,7 +8,7 @@ cc.Class({
 		},
 		audio_bg: {
             default: null,
-            url: cc.AudioClip
+            type: cc.AudioClip
         }
     },
 	play(type){
