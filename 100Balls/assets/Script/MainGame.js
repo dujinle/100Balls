@@ -298,6 +298,7 @@ cc.Class({
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
+			console.log('add rigidBall',rigidBall.getPosition());
 		}
 	},
 	fallOneBall(){
@@ -351,6 +352,7 @@ cc.Class({
 		GlobalData.GameRunTime.TotalScore = 0;
 		GlobalData.GameRunTime.AudioPlayNum = 0;
 		GlobalData.GameRunTime.CupAbledNum = 0;
+		GlobalData.GameInfoConfig.addCupNum = 0;
 		this.scoreLabel.getComponent(cc.Label).string = 0;
 		this.levelLabel.getComponent(cc.Label).string = 0;
 	},

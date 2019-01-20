@@ -17,6 +17,7 @@ cc.Class({
 	initAudio(audioManager){
 		console.log(this.node.group);
 		this.audioManager = audioManager;
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 		this.initLinerDamp(1);
 	},
 	initLinerDamp(time){
@@ -33,7 +34,7 @@ cc.Class({
 		this.fallLine = false;
 		if(flag == true){
 			this.setColor(0);
-			this.setLinerDamp(0);
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
 		}
 	},
 	setColor(level){
@@ -47,7 +48,7 @@ cc.Class({
 			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
 			this.isStatic = false;
 		}else{
-			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
 			this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,0);
 			this.node.getComponent(cc.RigidBody).angularVelocity = 0;
 			this.isStatic = true;

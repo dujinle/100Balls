@@ -97,12 +97,10 @@ cc.Class({
 			this.animState = this.anim.play('cupRightAnimation');
 			this.animState.wrapMode = cc.WrapMode.Loop;
 			this.animState.speed = this.addSpeed;
-			//this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(this.addSpeed,0);
 		}else{
 			this.animState= this.anim.play('cupLeftAnimation');
 			this.animState.wrapMode = cc.WrapMode.Loop;
 			this.animState.speed = this.addSpeed;
-			//this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(-this.addSpeed,0);
 		}
 		this.schedule(this.checkAddCup,0.02);
 	},
@@ -127,6 +125,7 @@ cc.Class({
 		this.isAbled = true;
 		this.touchFloorMusic = false;
 		if(flag == true){
+			this.unschedule(this.checkAddCup);
 			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
 			this.node.getComponent(cc.RigidBody).gravityScale = 0;
 			this.setColor(0);

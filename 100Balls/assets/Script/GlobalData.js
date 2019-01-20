@@ -81,7 +81,7 @@ GlobalData = {
 			Orange:[255,165,0],
 			Red:[255,0,0]
 		},
-		CupCreatNum:4,
+		CupCreatNum:6,
 		CupMoveSpeed:0.15,
 		CupMoveASpeed:1.5,
 		CupSpeedArate:0.2,
