@@ -1,4 +1,4 @@
-
+var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -8,29 +8,14 @@ cc.Class({
     },
 
     onLoad () {
-		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
-		cc.eventManager.addListener({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            // 设置是否吞没事件，在 onTouchBegan 方法返回 true 时吞没
-            onTouchBegan: function (touch, event) {
-                return true;
-            },
-            onTouchMoved: function (touch, event) {            // 触摸移动时触发
-            },
-            onTouchEnded: function (touch, event) {            // 点击事件结束处理
-			}
-         }, this.node);
 	},
 	//继续游戏按钮回调
 	onContinueCb(event){
-		this.EventCustom.setUserData({type:'PauseContinue'});
-		this.node.dispatchEvent(this.EventCustom);
+		EventManager.emit({type:'PauseContinue'});
 	},
 	//重新开始按钮回调
 	onResetCb(event){
-		this.EventCustom.setUserData({type:'PauseReset'});
-		this.node.dispatchEvent(this.EventCustom);
+		EventManager.emit({type:'PauseReset'});
 	},
 	showPause(){
 		console.log("showPause game board show");

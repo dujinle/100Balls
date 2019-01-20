@@ -35,7 +35,11 @@ GlobalData = {
 		contentLine:4,
 		cupInner:5,
 		cupLine:6,
-		cupSide:7
+		cupSide:7,
+		cupFallRight:8,
+		cupFallLeft:9,
+		cupRightRotate:10,
+		cupLeftRotate:11
 	},
 	GameRunTime:{
 		ContentBallsDic:{},
@@ -77,9 +81,9 @@ GlobalData = {
 			Orange:[255,165,0],
 			Red:[255,0,0]
 		},
-		CupCreatNum:7,
-		CupMoveSpeed:100,
-		CupMoveASpeed:1000,
+		CupCreatNum:4,
+		CupMoveSpeed:0.15,
+		CupMoveASpeed:1.5,
 		CupSpeedArate:0.2,
 		CupMoveDir:'right',
 		CupUpLevel:3

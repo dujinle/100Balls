@@ -22,6 +22,7 @@
       true,
       false,
       null,
+      true,
       true
     ],
     [
@@ -36,6 +37,14 @@
       true,
       false,
       false
+    ],
+    [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
     ]
   ],
   "design-resolution-height": 640,
@@ -48,7 +57,8 @@
     "Ball",
     "Cup",
     "Content",
-    "Floor"
+    "Floor",
+    "Track"
   ],
   "simulator-orientation": false,
   "simulator-resolution": {
@@ -56,5 +66,6 @@
     "width": 960
   },
   "use-customize-simulator": false,
-  "use-project-simulator-setting": false
+  "use-project-simulator-setting": false,
+  "start-scene": "current"
 }

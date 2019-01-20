@@ -55,6 +55,13 @@ cc.Class({
 		//pymanager.VELOCITY_ITERATIONS = 8;
 		// 每次更新物理系统处理位置的迭代次数，默认为 10
 		//pymanager.POSITION_ITERATIONS = 8;
+		/*
+		cc.director.getPhysicsManager().debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
+		cc.PhysicsManager.DrawBits.e_pairBit |
+		cc.PhysicsManager.DrawBits.e_centerOfMassBit |
+		cc.PhysicsManager.DrawBits.e_jointBit |
+		cc.PhysicsManager.DrawBits.e_shapeBit;
+		*/
 	},
 	loadDataSync(){
 		var self = this;

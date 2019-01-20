@@ -3,13 +3,14 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-		curCupIdx:0,
 		idxArray:null,
+		speedArray:null,
 		rigidCupPool:null,
 		audioManager:null,
     },
 	onLoad(){
 		this.idxArray = new Array();
+		this.speedArray = new Array();
 		this.rigidCupPool = new cc.NodePool();
 		EventManager.onCup(this.eventFunc,this);
 	},
@@ -46,6 +47,13 @@ cc.Class({
 					this.idxArray.push(cc.v2(xx,yy));
 				}
 			}
+			if(i == 0){
+				this.speedArray.push(GlobalData.CupConfig.CupMoveASpeed);
+			}else if(i == 1){
+				this.speedArray.push(GlobalData.CupConfig.CupMoveASpeed/4);
+			}else{
+				this.speedArray.push(GlobalData.CupConfig.CupMoveSpeed);
+			}
 		}
 		console.log('initTrack',this.rigidCupPool,this.idxArray);
 	},
@@ -58,20 +66,25 @@ cc.Class({
 			}else{
 				cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
 			}
-			var cupCom = cupNode.getComponent('RigidCup');
 			this.node.addChild(cupNode);
+			if(GlobalData.CupConfig.CupMoveDir == 'right'){
+				cupNode.setPosition(cc.v2(169,362));
+			}else{
+				cupNode.setPosition(cc.v2(-169,362));
+			}
+			console.log(cupNode.getPosition());
+			var cupCom = cupNode.getComponent('RigidCup');
 			cupCom.initData(
 				trickSize.width,
 				trickSize.height,
 				GlobalData.GameInfoConfig.addCupNum,
+				GlobalData.CupConfig.CupMoveSpeed,
+				this.speedArray[GlobalData.GameInfoConfig.addCupNum],
 				this.audioManager);
+			
 			GlobalData.GameRunTime.CupNodesDic[cupNode.uuid] = cupNode;
 			GlobalData.GameRunTime.CupAbledNum += 1;
-			cupCom.speed = GlobalData.CupConfig.CupMoveSpeed;
-			cupCom.addSpeed = GlobalData.CupConfig.CupMoveASpeed;
 			cupCom.startMove(this.idxArray);
-			//this.schedule(this.updateMove,0.01);
-			//this.schedule(this.updateMoveV2,0.02);
 		}
 	},
 	stopTrack(){
@@ -92,10 +105,8 @@ cc.Class({
 				cupCom.resumeMove();
 			}
 		}
-		this.schedule(this.updateMoveV2,0.02);
 	},
 	removeAllCups(){
-		this.curCupIdx = 0;
 		for(var key in GlobalData.GameRunTime.CupNodesDic){
 			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
 			if(cupNode != null){
@@ -110,9 +121,9 @@ cc.Class({
 		var cupNode = GlobalData.GameRunTime.CupNodesDic[uuid];
 		console.log('remove cup',cupNode.uuid,this.rigidCupPool.size());
 		if(cupNode != null){
-			this.rigidCupPool.put(cupNode);
 			var cupCom = cupNode.getComponent('RigidCup');
 			cupCom.resetStatus(true);
+			this.rigidCupPool.put(cupNode);
 		}
 	},
 	eventFunc(data){
@@ -127,25 +138,21 @@ cc.Class({
 			}
 			var cupCom = cupNode.getComponent('RigidCup');
 			this.node.addChild(cupNode);
+			if(GlobalData.CupConfig.CupMoveDir == 'right'){
+				cupNode.setPosition(cc.v2(169,362));
+			}else{
+				cupNode.setPosition(cc.v2(-169,362));
+			}
 			cupCom.initData(
 				trickSize.width,
 				trickSize.height,
 				GlobalData.GameInfoConfig.addCupNum,
+				GlobalData.CupConfig.CupMoveSpeed,
+				this.speedArray[GlobalData.GameInfoConfig.addCupNum],
 				this.audioManager);
 			GlobalData.GameRunTime.CupNodesDic[cupNode.uuid] = cupNode;
-			if(GlobalData.GameInfoConfig.addCupNum == 1){
-				cupCom.speed = GlobalData.CupConfig.CupMoveSpeed;
-				cupCom.addSpeed = GlobalData.CupConfig.CupMoveASpeed/4;
-			}else{
-				cupCom.speed = GlobalData.CupConfig.CupMoveSpeed;
-				cupCom.addSpeed = GlobalData.CupConfig.CupMoveSpeed;
-			}
 			GlobalData.GameRunTime.CupAbledNum += 1;
 			cupCom.startMove(this.idxArray);
 		}
-		else if(data.type == 'CupRemove'){
-			
-		}
 	},
-
 });

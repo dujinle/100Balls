@@ -1,0 +1,59 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "cupAnimation",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 4.066666666666666,
+  "sample": 60,
+  "speed": 0.15,
+  "wrapMode": 1,
+  "curveData": {
+    "props": {
+      "position": [
+        {
+          "frame": 0,
+          "value": [
+            169,
+            362
+          ]
+        },
+        {
+          "frame": 0.16666666666666666,
+          "value": [
+            269,
+            362
+          ]
+        },
+        {
+          "frame": 1.3666666666666667,
+          "value": [
+            269,
+            -362
+          ]
+        },
+        {
+          "frame": 2.2666666666666666,
+          "value": [
+            -269,
+            -362
+          ]
+        },
+        {
+          "frame": 3.466666666666667,
+          "value": [
+            -269,
+            362
+          ]
+        },
+        {
+          "frame": 4.066666666666666,
+          "value": [
+            169,
+            362
+          ]
+        }
+      ]
+    }
+  },
+  "events": []
+}

@@ -1,6 +1,5 @@
 var util = require('util');
 var EventManager = require('EventManager');
-var CupUtil = require('CupUtil');
 cc.Class({
     extends: cc.Component,
 
@@ -18,7 +17,6 @@ cc.Class({
 		color:null,
 		innerNode:cc.Node,
 		isAbled:true,
-		lastPosition:null,
 		audioManager:null,
     },
     onLoad () {
@@ -27,14 +25,14 @@ cc.Class({
 		this.level = 0;
 		this.ballNum = 0;
 		this.totalScore = 0;
-		this.rotateFlag = null;
+		this.rotateFlag = false;
 		this.touchFloorMusic = false;
-		this.toNomal = false;
 		//杯子翻转标志
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
 		this.setColor(this.level);
-		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+		this.anim = this.getComponent(cc.Animation);
 	},
 	setColor(level){
 		this.level = level;
@@ -64,8 +62,9 @@ cc.Class({
 	},
 	//杯子停止运动
 	stopMove(speed){
-		this.unschedule(this.updateMoveV2);
-		this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,0);
+		if(this.animState != null){
+			this.animState.pause();
+		}
 		this.node.pauseAllActions();
 		for(var key in this.balls){
 			var ball = this.balls[key];
@@ -74,32 +73,14 @@ cc.Class({
 	},
 	syncSpeed(speed){
 		this.addSpeed = speed;
-		console.log('syncSpeed:',this.addSpeed);
-		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			if(this.moveDir == 1){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(this.addSpeed,0);
-			}else if(this.moveDir == 2){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,-this.addSpeed);
-			}else if(this.moveDir == 3){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(-this.addSpeed,0);
-			}else if(this.moveDir == 4){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,this.addSpeed);
-			}
-		}
-		else{
-			if(this.moveDir == 1){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(-this.addSpeed,0);
-			}else if(this.moveDir == 2){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,-this.addSpeed);
-			}else if(this.moveDir == 3){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(this.addSpeed,0);
-			}else if(this.moveDir == 4){
-				this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,this.addSpeed);
-			}
+		if(this.animState != null){
+			this.animState.speed = this.addSpeed;
 		}
 	},
 	resumeMove(){
-		this.syncSpeed(this.addSpeed);
+		if(this.animState != null){
+			this.animState.resume();
+		}
 		for(var key in this.balls){
 			var ball = this.balls[key];
 			ball.getComponent('RigidBall').setLinerDamp(0);
@@ -111,81 +92,55 @@ cc.Class({
 		this.circleNum = 0;
 		this.idxArray = idxArray;
 		GlobalData.GameInfoConfig.addCupNum += 1;
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Animated;
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(this.addSpeed,0);
+			this.animState = this.anim.play('cupRightAnimation');
+			this.animState.wrapMode = cc.WrapMode.Loop;
+			this.animState.speed = this.addSpeed;
+			//this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(this.addSpeed,0);
 		}else{
-			this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(-this.addSpeed,0);
+			this.animState= this.anim.play('cupLeftAnimation');
+			this.animState.wrapMode = cc.WrapMode.Loop;
+			this.animState.speed = this.addSpeed;
+			//this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(-this.addSpeed,0);
 		}
-		this.schedule(this.updateMoveV2,0.02);
+		this.schedule(this.checkAddCup,0.02);
 	},
-	updateMoveV2(dt){
-		if(this.isAbled == true){
-			this.node.getComponent(cc.RigidBody).syncPosition();
-			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				CupUtil.moveRightV2(this.node,dt);
-			}else{
-				CupUtil.moveLeftV2(this.node,dt);
+	checkAddCup(dt){
+		//是否加杯子
+		if(GlobalData.GameInfoConfig.addCupNum < GlobalData.CupConfig.CupCreatNum
+			&& (this.myId + 1) == GlobalData.GameInfoConfig.addCupNum){
+			var pos = this.idxArray[this.myId];
+			if(this.node.x == pos.x && this.node.y <= pos.y){	
+				console.log(pos,this.myId,GlobalData.GameInfoConfig.addCupNum);
+				this.addSpeed = this.speed;
+				this.animState.speed = this.addSpeed;
+				this.unschedule(this.checkAddCup);
+				EventManager.emitCup({type:'AddCup'});
 			}
-			if(this.toNomal == false){
-				//第一个杯子特效
-				var size = this.node.getContentSize();
-				if(this.moveDir == 2 && this.node.y <= (size.height - this.height/2) && this.myId == 0){
-					this.addSpeed = this.speed;
-					this.toNomal = true;
-				}
-				//如果是第二个杯子则提前控制减速
-				if(this.moveDir == 2 && this.node.y <= 0 && this.myId == 1){
-					this.addSpeed = this.speed;
-					this.toNomal = true;
-				}
-			}
-			//是否加杯子
-			if(GlobalData.GameInfoConfig.addCupNum < GlobalData.CupConfig.CupCreatNum
-				&& (this.myId + 1) == GlobalData.GameInfoConfig.addCupNum){
-				var pos = this.idxArray[this.myId];
-				if(this.node.x == pos.x && this.node.y <= pos.y){	
-					console.log(pos,this.myId,GlobalData.GameInfoConfig.addCupNum);
-					EventManager.emitCup({type:'AddCup'});
-				}
-			}
-			if(this.ballNum > 0){
-				this.syncBallPosition();
-			}
-			this.checkRotate();
-			this.checkFall();
 		}
 	},
+	
 	resetStatus(flag){
 		this.ballNum = 0;
-		this.rotateFlag = null;
-		this.lastPosition = null;
-		this.toNomal = false;
+		this.rotateFlag = false;
 		this.isAbled = true;
 		this.touchFloorMusic = false;
-		//this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Kinematic;
-		this.node.getComponent(cc.RigidBody).gravityScale = 0;
-		if(this.node.rotation % 360 != 0){
+		if(flag == true){
+			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+			this.node.getComponent(cc.RigidBody).gravityScale = 0;
+			this.setColor(0);
 			this.node.rotation = 0;
 		}
-		if(flag == true){
-			this.unschedule(this.updateMoveV2);
-			this.setColor(0);
-		}
 	},
-	initData(width,height,deep,audioManager){
+	initData(width,height,deep,speed,addSpeed,audioManager){
+		console.log('cup initData',width,height,deep,speed,addSpeed,audioManager);
 		this.myId = deep;
 		this.width = width;
+		this.speed = speed;
 		this.height = height;
+		this.addSpeed = addSpeed;
 		this.audioManager = audioManager;
-		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			var pos = this.getXY(width,height,30);
-			this.node.setPosition(pos);
-		}else{
-			var pos = this.getXY(width,height,330);
-			this.node.setPosition(pos);
-		}
-		this.lastPosition = this.node.getPosition();
 	},
 	UpLevelIsValid(){
 		if(GlobalData.CupConfig.CupMoveDir == 'right' && this.node.x >= this.width/2){
@@ -208,102 +163,48 @@ cc.Class({
 		this.balls = {};
 		this.resetStatus(false);
 	},
-	getXY(width,height,radian){
-		let angle = radian %360 / 180 * Math.PI;
-		let x = height / 2 * Math.tan(angle);
-		let y = height / 2 / Math.tan(angle);
-		//console.log(width,height,x,y);
-		if(Math.abs(x) > width/2){
-			x = width/2;
-		}
-		if(Math.abs(y) > height/2){
-			y = height/2
-		}
-		if(angle <= Math.PI){
-			x = Math.abs(x);
-		}else{
-			x = Math.abs(x) * -1;
-		}
-		if(angle <= Math.PI/2 || angle >= Math.PI * 3/2){
-			y = Math.abs(y);
-		}else{
-			y = Math.abs(y) * -1;
-		}
-		//console.log(width,height,x,y);
-		return cc.v2(x,y);
-	},
-	//检查是否反转杯子倒出小球
-	checkRotate(){
+	rotateCup(){
+		console.log("rotateCup start");
 		var self = this;
-		if(this.ballNum > 0){
-			var size = this.node.getContentSize();
-			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				if(this.node.x >= -(size.width * 2) && this.node.y >= this.height/2 && this.node.x < 0 && this.rotateFlag == null){
-					var tt = (size.width * 2) / this.addSpeed;
-					
-					for(var key in this.balls){
-						var ball = this.balls[key];
-						ball.getComponent('RigidBall').setLinerDamp(0);
-					}
-					
-					var activeEnd = cc.callFunc(function(){
-						self.rotateFlag = null;
-						self.clearBalls();
-						self.updateCircleNum();
-					},this);
-					this.rotateFlag = this.node.runAction(cc.sequence(cc.rotateBy(tt * 2, 360),activeEnd));
-				}
-			}
-			else{
-				if(this.node.x <= (size.width * 2) && this.node.y >= this.height/2 && this.node.x > 0 && this.rotateFlag == null){
-					var tt = (size.width * 2) / this.addSpeed;
-					
-					for(var key in this.balls){
-						var ball = this.balls[key];
-						ball.getComponent('RigidBall').setLinerDamp(0);
-					}
-					
-					var activeEnd = cc.callFunc(function(){
-						self.rotateFlag = null;
-						self.clearBalls();
-						self.updateCircleNum();
-					},this);
-					this.rotateFlag = this.node.runAction(cc.sequence(cc.rotateBy(tt * 2, -360),activeEnd));
-					
-				}
-			}
-		}
-	},
-	checkFall(){
-		if(this.ballNum <= 0 && this.isAbled == true){
-			var size = this.node.getContentSize();
-			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				if(this.node.x <= -this.width/2 && this.node.y >= (size.height - this.height/2)){
-					this.isAbled = false;
-					this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
-					this.node.getComponent(cc.RigidBody).gravityScale = 10;
-				}
-			}else{
-				if(this.node.x >= this.width/2 && this.node.y >= (size.height - this.height/2)){
-					this.isAbled = false;
-					this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
-					this.node.getComponent(cc.RigidBody).gravityScale = 10;
-				}
-			}
-		}
-	},
-	syncBallPosition(){
+		var size = this.node.getContentSize();
+		var tt = (size.width * 1.5) / ((this.addSpeed/this.speed) * 100);
+		/*
 		for(var key in this.balls){
 			var ball = this.balls[key];
-			var ballCom = ball.getComponent('RigidBall');
-			if(ballCom.isStatic == true){
-				ballCom.setMyPosition(this.moveDir,this.addSpeed);
-			}
+			ball.getComponent('RigidBall').setLinerDamp(0);
 		}
+		*/
+		var activeEnd = cc.callFunc(function(){
+			self.rotateFlag = false;
+			self.clearBalls();
+			self.updateCircleNum();
+		},this);
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
+			this.node.runAction(cc.sequence(cc.rotateBy(tt * 2, 360),activeEnd));
+		}else{
+			this.node.runAction(cc.sequence(cc.rotateBy(tt * 2, -360),activeEnd));
+		}
+	},
+	fallCup(){
+		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+		this.node.getComponent(cc.RigidBody).gravityScale = 10;
 	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
-		//如果 碰撞的 杯口的挡板则球体进入杯子 并取消碰撞效果
+		//如果杯子碰到地板则销毁
+		if(otherCollider.tag == GlobalData.RigidBodyTag.floor && this.touchFloorMusic == false){
+			contact.disabled = true;
+			this.touchFloorMusic = true;
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
+			//this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+			this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,0);
+			this.cupRemove();
+			return;
+		}
+		if(this.isAbled == false){
+			contact.disabled = true;
+			return;
+		}
 		var self = this;
 		//如果碰撞瓶盖则代表球进入
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
@@ -312,9 +213,9 @@ cc.Class({
 				var ball = otherCollider.node;
 				var ballCom = ball.getComponent('RigidBall');
 				ballCom.isInCup = true;
-				//ballCom.unMoveStop();
+				ballCom.unMoveStop();
 				//console.log('ball in cup:',ball.getComponent(cc.RigidBody));
-				ballCom.initLinerDamp(1);
+				//ballCom.initLinerDamp(1);
 				this.ballNum += 1;
 				this.balls[otherCollider.node.uuid] = otherCollider.node;
 				this.setCupScoreLabel(otherCollider.node);
@@ -329,15 +230,35 @@ cc.Class({
 				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.BallTouchCup);
 			}
 		}
-		//如果杯子碰到地板则销毁
-		if(otherCollider.tag == GlobalData.RigidBodyTag.floor && this.touchFloorMusic == false){
+		//碰撞了检测掉落挡板
+		if(otherCollider.tag == GlobalData.RigidBodyTag.cupFallRight){
 			contact.disabled = true;
-			this.touchFloorMusic = true;
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
-			//this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-			this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,0);
-			this.cupRemove();
-			return;
+			if(GlobalData.CupConfig.CupMoveDir == 'right' && this.ballNum <= 0){
+				this.isAbled = false;
+				this.animState.stop();
+				this.scheduleOnce(this.fallCup,0);
+			}
+		}else if(otherCollider.tag == GlobalData.RigidBodyTag.cupFallLeft){
+			contact.disabled = true;
+			if(GlobalData.CupConfig.CupMoveDir == 'left' && this.ballNum <= 0){
+				this.isAbled = false;
+				this.animState.stop();
+				this.scheduleOnce(this.fallCup,0);
+			}
+		}
+		//碰撞了检测反转挡板
+		if(otherCollider.tag == GlobalData.RigidBodyTag.cupRightRotate){
+			contact.disabled = true;
+			if(GlobalData.CupConfig.CupMoveDir == 'right' && this.rotateFlag == false){
+				this.rotateFlag = true;
+				this.scheduleOnce(this.rotateCup,0);
+			}
+		}else if(otherCollider.tag == GlobalData.RigidBodyTag.cupLeftRotate){
+			contact.disabled = true;
+			if(GlobalData.CupConfig.CupMoveDir == 'left' && this.rotateFlag == false){
+				this.rotateFlag = true;
+				this.scheduleOnce(this.rotateCup,0);
+			}
 		}
     },
 	setCupScoreLabel(ballNode){
