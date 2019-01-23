@@ -161,15 +161,16 @@ cc.Class({
 		console.log("rotateCup start");
 		var self = this;
 		var size = this.node.getContentSize();
-		var rotateW = 120 * (this.animState.speed/this.speed);
+		var rotateW = (120 + size.width/2)* (this.animState.speed/this.speed);
 		var leftW = this.width/2 - rotateW;
 		if(leftW < 0){
 			leftW = 0;
 		}
 		//1/1000m *this.speed
-		var delayTime = leftW/(this.animState.speed * 1000);
+		var delayTime = leftW/100 /(this.animState.speed/this.speed);
 		//var tt = (size.width * 1.5) / ((this.animState.speed/this.speed) * 100);
-		var tt = (rotateW * 2) / (this.animState.speed * 1000);
+		var tt = (240 + size.width)/100 /(this.animState.speed/this.speed);
+		console.log(rotateW,leftW,delayTime,tt);
 		var activeEnd = cc.callFunc(function(){
 			self.rotateFlag = false;
 			self.updateCircleNum();
