@@ -345,6 +345,7 @@ cc.Class({
 		}
 		for(var key in GlobalData.GameRunTime.ContentBallsDic){
 			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
+			rigidBall.getComponent('RigidBall').fallReset(true);
 			GlobalData.GameRunTime.BallNodesPool.put(rigidBall);
 		}
 		this.trickNode.getComponent('TrackManager').removeAllCups();

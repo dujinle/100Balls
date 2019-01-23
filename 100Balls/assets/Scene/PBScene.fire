@@ -78,32 +78,32 @@
         "__id__": 14
       },
       {
-        "__id__": 24
+        "__id__": 23
       },
       {
-        "__id__": 34
+        "__id__": 33
       },
       {
-        "__id__": 36
+        "__id__": 35
       },
       {
-        "__id__": 38
+        "__id__": 37
       },
       {
-        "__id__": 40
+        "__id__": 39
       },
       {
-        "__id__": 42
+        "__id__": 41
       },
       {
-        "__id__": 44
+        "__id__": 43
       }
     ],
     "_active": true,
     "_level": 0,
     "_components": [
       {
-        "__id__": 46
+        "__id__": 45
       }
     ],
     "_prefab": null,
@@ -548,9 +548,7 @@
         "__id__": 22
       }
     ],
-    "_prefab": {
-      "__id__": 23
-    },
+    "_prefab": null,
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
@@ -910,17 +908,6 @@
     "_id": "a9DFu+SUpAnrLmFdw5vnf8"
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 14
-    },
-    "asset": {
-      "__uuid__": "0c0a2ca3-bc6b-40c9-bf3a-08b8383af30a"
-    },
-    "fileId": "03aqAwIIRPhLVQpDYqeufe",
-    "sync": false
-  },
-  {
     "__type__": "cc.Node",
     "_name": "AnimChainCup",
     "_objFlags": 0,
@@ -931,6 +918,9 @@
     "_active": true,
     "_level": 1,
     "_components": [
+      {
+        "__id__": 24
+      },
       {
         "__id__": 25
       },
@@ -951,13 +941,10 @@
       },
       {
         "__id__": 31
-      },
-      {
-        "__id__": 32
       }
     ],
     "_prefab": {
-      "__id__": 33
+      "__id__": 32
     },
     "_opacity": 255,
     "_color": {
@@ -1009,7 +996,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "_type": 3,
@@ -1033,7 +1020,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "tag": 5,
@@ -1097,7 +1084,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "tag": 6,
@@ -1126,7 +1113,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "_srcBlendFactor": 770,
@@ -1154,7 +1141,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "tag": 7,
@@ -1233,7 +1220,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "tag": 8,
@@ -1276,7 +1263,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "_defaultClip": null,
@@ -1296,7 +1283,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 24
+      "__id__": 23
     },
     "_enabled": true,
     "speed": 10,
@@ -1311,7 +1298,7 @@
     "ballNum": 0,
     "color": null,
     "innerNode": {
-      "__id__": 24
+      "__id__": 23
     },
     "isAbled": true,
     "audioManager": null,
@@ -1320,7 +1307,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 24
+      "__id__": 23
     },
     "asset": {
       "__uuid__": "4f2e8c04-4cc3-4b5c-9809-d5d56f845518"
@@ -1340,7 +1327,7 @@
     "_level": 1,
     "_components": [
       {
-        "__id__": 35
+        "__id__": 34
       }
     ],
     "_prefab": null,
@@ -1394,7 +1381,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 34
+      "__id__": 33
     },
     "_enabled": true,
     "_srcBlendFactor": 770,
@@ -1425,7 +1412,7 @@
     },
     "_id": "31H5H4vRBIgZcVv/U7/GWP",
     "_prefab": {
-      "__id__": 37
+      "__id__": 36
     },
     "_name": "CupScore",
     "_active": true,
@@ -1441,7 +1428,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 36
+      "__id__": 35
     },
     "asset": {
       "__uuid__": "ad83c479-74dd-4a99-bcef-0e1d89fb113a"
@@ -1457,7 +1444,7 @@
     },
     "_id": "184Zho4idBJo5L8NK8zGMu",
     "_prefab": {
-      "__id__": 39
+      "__id__": 38
     },
     "_name": "FinishGameScene",
     "_active": true,
@@ -1473,7 +1460,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 38
+      "__id__": 37
     },
     "asset": {
       "__uuid__": "e590a5a6-416c-4481-9a8b-c399bc51e45d"
@@ -1489,7 +1476,7 @@
     },
     "_id": "4e70xAznROm5yq+nUMd94n",
     "_prefab": {
-      "__id__": 41
+      "__id__": 40
     },
     "_name": "RankGameScene",
     "_active": true,
@@ -1505,7 +1492,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 40
+      "__id__": 39
     },
     "asset": {
       "__uuid__": "86c16340-16ca-4cb6-8a5c-bd4abc5de50c"
@@ -1521,7 +1508,7 @@
     },
     "_id": "aepYlvdC5A4bBDNR31A/s5",
     "_prefab": {
-      "__id__": 43
+      "__id__": 42
     },
     "_name": "PauseGameScene",
     "_active": true,
@@ -1537,7 +1524,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 42
+      "__id__": 41
     },
     "asset": {
       "__uuid__": "438fafbc-b267-4e1b-8e96-9ddeaa9f725c"
@@ -1553,7 +1540,7 @@
     },
     "_id": "9aJrUXD5hNuag6LLAM6XaN",
     "_prefab": {
-      "__id__": 45
+      "__id__": 44
     },
     "_name": "AudioManager",
     "_active": true,
@@ -1569,7 +1556,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 44
+      "__id__": 43
     },
     "asset": {
       "__uuid__": "94dec4d1-50af-444e-a024-a49fad749fcd"

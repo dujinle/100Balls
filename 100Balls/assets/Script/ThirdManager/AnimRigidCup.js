@@ -181,9 +181,9 @@ cc.Class({
 		},this);
 		this.setCupLineClose(false);
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt * 2, 360),activeEnd));
+			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt, 360),activeEnd));
 		}else{
-			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt * 2, -360),activeEnd));
+			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt, -360),activeEnd));
 		}
 		this.node.runAction(cc.sequence(cc.delayTime(tt/2 + delayTime),fallMiddle));
 	},

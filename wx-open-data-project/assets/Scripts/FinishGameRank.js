@@ -22,9 +22,9 @@ cc.Class({
 				}
 			}
 			if(dd.my == true){
-				itemNode.getChildByName("scoreLabel").color = new cc.color("#ba5a55");
-				itemNode.getChildByName("rankLabel").color = new cc.color("#ba5a55");
-				itemNode.getChildByName("nameLabel").color = new cc.color("#ba5a55");
+				itemNode.getChildByName("scoreLabel").color = new cc.color("#ea7d07");
+				itemNode.getChildByName("rankLabel").color = new cc.color("#ea7d07");
+				itemNode.getChildByName("nameLabel").color = new cc.color("#ea7d07");
 			}
 			this.loadImage(itemNode,dd.avatarUrl);
 		}
