@@ -12,7 +12,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "ChainCup",
+    "_name": "AnimChainCup",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -114,32 +114,6 @@
     "_fixedRotation": false,
     "enabledContactListener": true,
     "bullet": false,
-    "_id": ""
-  },
-  {
-    "__type__": "9d8e1jCpO5PG4s1DsQRS0xK",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "speed": 10,
-    "addSpeed": 0,
-    "width": 20,
-    "height": 20,
-    "balls": null,
-    "myId": 0,
-    "moveDir": 0,
-    "circleNum": 0,
-    "level": 0,
-    "ballNum": 0,
-    "color": null,
-    "innerNode": {
-      "__id__": 1
-    },
-    "isAbled": true,
-    "audioManager": null,
     "_id": ""
   },
   {
@@ -396,13 +370,39 @@
     "_defaultClip": null,
     "_clips": [
       {
-        "__uuid__": "51f62f9e-e884-4691-a564-b8c7eaf78ba2"
+        "__uuid__": "f7c0e2a8-55c4-470b-b135-c7a89e8390ec"
       },
       {
         "__uuid__": "7b0404f9-0087-4283-a7f0-417a3cf8a009"
       }
     ],
     "playOnLoad": false,
+    "_id": ""
+  },
+  {
+    "__type__": "211fbFIbK1BHbWbES9oPFFu",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "speed": 10,
+    "addSpeed": 0,
+    "width": 20,
+    "height": 20,
+    "balls": null,
+    "myId": 0,
+    "moveDir": 0,
+    "circleNum": 0,
+    "level": 0,
+    "ballNum": 0,
+    "color": null,
+    "innerNode": {
+      "__id__": 1
+    },
+    "isAbled": true,
+    "audioManager": null,
     "_id": ""
   },
   {
@@ -413,7 +413,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "03aqAwIIRPhLVQpDYqeufe",
+    "fileId": "abe+3HCwVFWpUG49rJT/Je",
     "sync": false
   }
 ]

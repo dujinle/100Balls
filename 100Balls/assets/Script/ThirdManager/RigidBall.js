@@ -1,3 +1,4 @@
+var ScheduleManager = require('ScheduleManager');
 cc.Class({
     extends: cc.Component,
 
@@ -15,17 +16,42 @@ cc.Class({
 		this.setColor(this.level);
 	},
 	initAudio(audioManager){
-		console.log(this.node.group);
 		this.audioManager = audioManager;
-		this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
-		this.initLinerDamp(1);
+		if(this.rigidBody == null){
+			this.rigidBody = this.node.getComponent(cc.RigidBody);
+		}
+		this.rigidBody.gravityScale = GlobalData.BallConfig.BallGravityScale;
+		this.rigidBody.type = cc.RigidBodyType.Dynamic;
+		/*
+		if(GlobalData.GameInfoConfig.gameStatus == 0){
+			this.delayToStatic(1,true);
+		}
+		*/
 	},
-	initLinerDamp(time){
+	delayToStatic(time,flag){
 		this.unMoveStop();
-		this.scheduleOnce(this.moveStop,time);
+		/*
+		var name = 'delayToStatic' + this.node.uuid;
+		ScheduleManager.MyScheduleOnce(name,function(){
+			if(flag == true){
+				this.setRigidyType(50);
+			}else{
+				this.setRigidyType(0);
+			}
+		},time,this);
+		*/
+		if(flag == true){
+			this.scheduleOnce(this.setRigidyType.bind(this,20),time);
+		}else{
+			this.scheduleOnce(this.setRigidyType.bind(this,0),time);
+		}
+	},
+	setGravityScale(gravityRate){
+		this.rigidBody.gravityScale *= gravityRate;
+		//this.rigidBody.applyForceToCenter(force,flag);
 	},
 	fallReset(flag){
-		console.log('fallReset');
+		console.log(this.node.uuid,'fallReset');
 		this.touchCupMusic = false;
 		this.touchFloorMusic = false;
 		this.isAbled = true;
@@ -34,7 +60,8 @@ cc.Class({
 		this.fallLine = false;
 		if(flag == true){
 			this.setColor(0);
-			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
+			this.rigidBody.type = cc.RigidBodyType.Static;
+			//this.unMoveStop();
 		}
 	},
 	setColor(level){
@@ -43,22 +70,22 @@ cc.Class({
 		var colorMat = GlobalData.BallConfig.BallColorDic[this.color];
 		this.node.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
-	setLinerDamp(num){
+	setRigidyType(num){
+		console.log(this.node.uuid,'setRigidyType',num);
 		if(num == 0){
-			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Dynamic;
+			this.rigidBody.type = cc.RigidBodyType.Dynamic;
 			this.isStatic = false;
 		}else{
-			this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-			this.node.getComponent(cc.RigidBody).linearVelocity = cc.v2(0,0);
-			this.node.getComponent(cc.RigidBody).angularVelocity = 0;
+			this.rigidBody.type = cc.RigidBodyType.Static;
+			this.rigidBody.linearVelocity = cc.v2(0,0);
+			this.rigidBody.angularVelocity = 0;
 			this.isStatic = true;
 		}
 	},
 	unMoveStop(){
-		this.unschedule(this.moveStop);
-	},
-	moveStop(){
-		this.setLinerDamp(50);
+		//var name = 'delayToStatic' + this.node.uuid;
+		//ScheduleManager.UnMySchedule(name,this);
+		this.unschedule(this.setRigidyType);
 	},
 	fallRemove(){
 		var self = this;

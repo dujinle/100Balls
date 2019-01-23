@@ -20,9 +20,10 @@ cc.Class({
 		GlobalData.GameInfoConfig.addCupNum = 0;
 		var trickSize = this.node.getContentSize();
 		for(var i = 0;i < 1;i++){
-			var rigidCup = cc.instantiate(GlobalData.assets['ChainCup']);
-			cupSize = rigidCup.getContentSize();
-			this.rigidCupPool.put(rigidCup);
+			var AnimRigidCup = cc.instantiate(GlobalData.assets['AnimChainCup']);
+			//var AnimRigidCup = cc.instantiate(GlobalData.assets['ChainCup']);
+			cupSize = AnimRigidCup.getContentSize();
+			this.rigidCupPool.put(AnimRigidCup);
 		}
 		//计算杯子出现的位置
 		for(var i = 0;i < GlobalData.CupConfig.CupCreatNum;i++){
@@ -64,7 +65,8 @@ cc.Class({
 			if(this.rigidCupPool.size() > 0){
 				cupNode = this.rigidCupPool.get();
 			}else{
-				cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
+				cupNode = cc.instantiate(GlobalData.assets['AnimChainCup']);
+				//cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
 			}
 			this.node.addChild(cupNode);
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
@@ -72,8 +74,9 @@ cc.Class({
 			}else{
 				cupNode.setPosition(cc.v2(-169,362));
 			}
-			console.log(cupNode.getPosition());
-			var cupCom = cupNode.getComponent('RigidCup');
+			//console.log(cupNode.getPosition());
+			//var cupCom = cupNode.getComponent('AnimRigidCup');
+			var cupCom = cupNode.getComponent('AnimRigidCup');
 			cupCom.initData(
 				trickSize.width,
 				trickSize.height,
@@ -91,7 +94,7 @@ cc.Class({
 		for(var key in GlobalData.GameRunTime.CupNodesDic){
 			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
 			if(cupNode != null){
-				var cupCom = cupNode.getComponent('RigidCup');
+				var cupCom = cupNode.getComponent('AnimRigidCup');
 				cupCom.stopMove();
 			}
 		}
@@ -101,7 +104,7 @@ cc.Class({
 		for(var key in GlobalData.GameRunTime.CupNodesDic){
 			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
 			if(cupNode != null){
-				var cupCom = cupNode.getComponent('RigidCup');
+				var cupCom = cupNode.getComponent('AnimRigidCup');
 				cupCom.resumeMove();
 			}
 		}
@@ -111,7 +114,7 @@ cc.Class({
 			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
 			if(cupNode != null){
 				this.rigidCupPool.put(cupNode);
-				var cupCom = cupNode.getComponent('RigidCup');
+				var cupCom = cupNode.getComponent('AnimRigidCup');
 				cupCom.resetStatus(true);
 			}
 		}
@@ -121,7 +124,7 @@ cc.Class({
 		var cupNode = GlobalData.GameRunTime.CupNodesDic[uuid];
 		console.log('remove cup',cupNode.uuid,this.rigidCupPool.size());
 		if(cupNode != null){
-			var cupCom = cupNode.getComponent('RigidCup');
+			var cupCom = cupNode.getComponent('AnimRigidCup');
 			cupCom.resetStatus(true);
 			this.rigidCupPool.put(cupNode);
 		}
@@ -134,9 +137,10 @@ cc.Class({
 			if(this.rigidCupPool.size() > 0){
 				cupNode = this.rigidCupPool.get();
 			}else{
-				cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
+				//cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
+				cupNode = cc.instantiate(GlobalData.assets['AnimChainCup']);
 			}
-			var cupCom = cupNode.getComponent('RigidCup');
+			var cupCom = cupNode.getComponent('AnimRigidCup');
 			this.node.addChild(cupNode);
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
 				cupNode.setPosition(cc.v2(169,362));

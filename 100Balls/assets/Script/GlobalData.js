@@ -41,6 +41,9 @@ GlobalData = {
 		cupRightRotate:10,
 		cupLeftRotate:11
 	},
+	WorldConfig:{
+		gravity:[0,-320]
+	},
 	GameRunTime:{
 		ContentBallsDic:{},
 		BallNodesPool:{},
@@ -51,7 +54,8 @@ GlobalData = {
 		CupAbledNum:0,
 		BallAbledNum:0,
 		TotalScore:0,
-		CircleLevel:0
+		CircleLevel:0,
+		CurrentSpeed:0
 	},
 	GameInfoConfig:{
 		audioSupport:1,
@@ -83,8 +87,9 @@ GlobalData = {
 		},
 		CupCreatNum:6,
 		CupMoveSpeed:0.15,
+		CupMoveMSpeed:0.45,//杯子的最大旋转速度，超过之后要进行衰减
 		CupMoveASpeed:1.5,
-		CupSpeedArate:0.2,
+		CupSpeedArate:0.1,//每三轮速度增加率
 		CupMoveDir:'right',
 		CupUpLevel:3
 	},

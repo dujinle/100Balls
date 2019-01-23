@@ -1,4 +1,16 @@
 var CupUtil = {
+	//计算value的rate的近似跟
+	Sqrt:function(start,rate,end){
+		var step = 0;
+		while(start > end){
+			start /= rate;
+			step += 1;
+		}
+		if(step == 0){
+			return 1;
+		}
+		return step;
+	},
 	moveRightV2:function(node,dt){
 		var nodeCom = node.getComponent('RigidCup');
 		if(node.x >= nodeCom.width/2 && nodeCom.moveDir == 1){

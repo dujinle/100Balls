@@ -18,7 +18,6 @@ cc.Class({
 		mainGameBoard:cc.Node,
 		pauseButton:cc.Node,
 		audioManager:null,
-		cupSpeed:0,
     },
 
     onLoad () {
@@ -45,16 +44,16 @@ cc.Class({
 		this.startButton.getComponent(cc.Button).interactable = false;
 		//打开物理属性 碰撞检测
 		//如果用了物理引擎，可以通过修改游戏帧率和检测的步长降低检测频率，提高性能。
-		var pymanager = cc.director.getPhysicsManager();
-		pymanager.enabled = true;
+		this.pymanager = cc.director.getPhysicsManager();
+		this.pymanager.enabled = true;
 		// 开启物理步长的设置
-		//pymanager.enabledAccumulator = true;
+		//this.pymanager.enabledAccumulator = true;
 		// 物理步长，默认 FIXED_TIME_STEP 是 1/60
-		//pymanager.FIXED_TIME_STEP = 1/50;
+		//this.pymanager.FIXED_TIME_STEP = 1/50;
 		// 每次更新物理系统处理速度的迭代次数，默认为 10
-		//pymanager.VELOCITY_ITERATIONS = 8;
+		//this.pymanager.VELOCITY_ITERATIONS = 8;
 		// 每次更新物理系统处理位置的迭代次数，默认为 10
-		//pymanager.POSITION_ITERATIONS = 8;
+		//this.pymanager.POSITION_ITERATIONS = 8;
 		/*
 		cc.director.getPhysicsManager().debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
 		cc.PhysicsManager.DrawBits.e_pairBit |
@@ -100,9 +99,8 @@ cc.Class({
 		this.pauseButton.active = false;
 		this.mainGameBoard.active = true;
 		this.startGameBoard.active = true;
-		this.cupSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.startGameBoard.getComponent('StartGame').audioManager = this.audioManager;
-		
+		//this.pymanager.gravity = cc.v2(GlobalData.WorldConfig.gravity[0],GlobalData.WorldConfig.gravity[1]);
 		GlobalData.GameRunTime.BallNodesPool = new cc.NodePool();
 	},
 	//第一次进入游戏初始化数据
@@ -110,6 +108,7 @@ cc.Class({
 		this.initBalls();
 		this.initFallBalls();
 		this.pauseButton.active = true;
+		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);
 		this.floorNode.getComponent('FloorManager').initAudio(this.audioManager);
 		this.trickNode.getComponent('TrackManager').startTrack();
@@ -140,6 +139,7 @@ cc.Class({
 		this.initFallBalls();
 		this.trickNode.getComponent('TrackManager').startTrack();
 		this.audioManager.getComponent('AudioManager').playGameBg();
+		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 	},
 	initBalls(){
 		for(var i = 0;i < 10;i++){
@@ -197,7 +197,10 @@ cc.Class({
 			//如果球体升级则进行颜色变化
 			var self = this;
 			var trickNodeSize = this.trickNode.getContentSize();
-			var time = (trickNodeSize.width/2 + 100)/this.cupSpeed * 1000;
+			//动画速度 0.1s/100m
+			var time = (trickNodeSize.width/2 + 100)/GlobalData.GameRunTime.CurrentSpeed;
+			
+			
 			if(GlobalData.GameRunTime.CircleLevel % GlobalData.BallConfig.BallUpLevel == 0){
 				setTimeout(function(){
 					let UpLevelIsValid = new Array();
@@ -217,14 +220,19 @@ cc.Class({
 				},time);
 			}
 			if(GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel == 0){
+				//设置速度升级
+				GlobalData.GameRunTime.CurrentSpeed *= (1 + GlobalData.CupConfig.CupSpeedArate);
+				if(GlobalData.GameRunTime.CurrentSpeed >= GlobalData.CupConfig.CupMoveMSpeed){
+					GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveMSpeed
+				}
 				setTimeout(function(){
 					let UpLevelIsValid = new Array();
 					for(let key in GlobalData.GameRunTime.CupNodesDic){
 						let cup = GlobalData.GameRunTime.CupNodesDic[key];
 						if(cup != null && cup.isValid){
-							let cupCom = cup.getComponent('RigidCup');
-							let speed = cupCom.addSpeed * (1 + GlobalData.CupConfig.CupSpeedArate);
-							cupCom.syncSpeed(speed);
+							//设置速度升级
+							var cupCom = cup.getComponent('AnimRigidCup');
+							cupCom.syncSpeed(GlobalData.GameRunTime.CurrentSpeed);
 							if(cupCom.UpLevelIsValid()){
 								UpLevelIsValid.push(cup);
 							}
@@ -232,7 +240,7 @@ cc.Class({
 					}
 					let CupNode = util.getRandomObjForArray(UpLevelIsValid);
 					if(CupNode != -1){
-						let cupCom = CupNode.getComponent('RigidCup');
+						let cupCom = CupNode.getComponent('AnimRigidCup');
 						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
 							self.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 							cupCom.setColor(cupCom.level + 1);
@@ -298,7 +306,7 @@ cc.Class({
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
-			console.log('add rigidBall',rigidBall.getPosition());
+			//console.log('add rigidBall',rigidBall.getPosition());
 		}
 	},
 	fallOneBall(){
@@ -326,7 +334,7 @@ cc.Class({
 	},
 	clearGame(){
 		//清除球体
-		console.log(GlobalData.GameRunTime);
+		//console.log(GlobalData.GameRunTime);
 		if(GlobalData.GameRunTime.BallAbledNum > 0){
 			for(var key in GlobalData.GameRunTime.BallNodesDic){
 				var ball = GlobalData.GameRunTime.BallNodesDic[key];
@@ -341,7 +349,7 @@ cc.Class({
 		}
 		this.trickNode.getComponent('TrackManager').removeAllCups();
 		//this.rigidBallPool.clear();
-	
+		//this.pymanager.gravity = cc.v2(GlobalData.WorldConfig.gravity[0],GlobalData.WorldConfig.gravity[1]);
 		//准备球儿数量
 		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallConfig.BallTotalNum;
 		GlobalData.GameRunTime.BallAbledNum = GlobalData.GameRunTime.BallUnFallNum;

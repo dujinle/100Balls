@@ -77,7 +77,7 @@ cc.Class({
 		GlobalData.GameInfoConfig.addCupNum += 1;
 		this.rigidBody.type = cc.RigidBodyType.Animated;
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			this.animState = this.anim.play('cupRightAnimation');
+			this.animState = this.anim.play('cupRightAnimationV');
 			this.animState.wrapMode = cc.WrapMode.Loop;
 			this.animState.speed = this.addSpeed;
 		}else{
@@ -157,11 +157,19 @@ cc.Class({
 			}
 		}
 	},
-	rotateCup(){
+	checkRotate(){
 		console.log("rotateCup start");
 		var self = this;
 		var size = this.node.getContentSize();
-		var tt = (size.width * 1.5) / ((this.animState.speed/this.speed) * 100);
+		var rotateW = 120 * (this.animState.speed/this.speed);
+		var leftW = this.width/2 - rotateW;
+		if(leftW < 0){
+			leftW = 0;
+		}
+		//1/1000m *this.speed
+		var delayTime = leftW/(this.animState.speed * 1000);
+		//var tt = (size.width * 1.5) / ((this.animState.speed/this.speed) * 100);
+		var tt = (rotateW * 2) / (this.animState.speed * 1000);
 		var activeEnd = cc.callFunc(function(){
 			self.rotateFlag = false;
 			self.updateCircleNum();
@@ -173,11 +181,20 @@ cc.Class({
 		},this);
 		this.setCupLineClose(false);
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			this.node.runAction(cc.sequence(cc.rotateBy(tt * 2, 360),activeEnd));
+			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt * 2, 360),activeEnd));
 		}else{
-			this.node.runAction(cc.sequence(cc.rotateBy(tt * 2, -360),activeEnd));
+			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt * 2, -360),activeEnd));
 		}
-		this.node.runAction(cc.sequence(cc.delayTime(tt),fallMiddle));
+		this.node.runAction(cc.sequence(cc.delayTime(tt/2 + delayTime),fallMiddle));
+	},
+	checkFall(){
+		if(this.ballNum <= 0){
+			this.isAbled = false;
+			this.animState.stop();
+			this.rigidBody.type = cc.RigidBodyType.Dynamic;
+			this.rigidBody.gravityScale = 10;
+			//this.scheduleOnce(this.fallCup,0);
+		}
 	},
 	fallCup(){
 		this.rigidBody.type = cc.RigidBodyType.Dynamic;
@@ -222,41 +239,6 @@ cc.Class({
 			if(ballCom.touchCupMusic == false){
 				ballCom.touchCupMusic = true;
 				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.BallTouchCup);
-			}
-		}
-		//碰撞了检测掉落挡板
-		if(otherCollider.tag == GlobalData.RigidBodyTag.cupFallRight){
-			contact.disabled = true;
-			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				if(this.ballNum <= 0){
-					this.isAbled = false;
-					this.animState.stop();
-					this.scheduleOnce(this.fallCup,0);
-				}
-			}
-		}
-		else if(otherCollider.tag == GlobalData.RigidBodyTag.cupFallLeft){
-			contact.disabled = true;
-			if(GlobalData.CupConfig.CupMoveDir == 'left'){
-				if(this.ballNum <= 0){
-					this.isAbled = false;
-					this.animState.stop();
-					this.scheduleOnce(this.fallCup,0);
-				}
-			}
-		}
-		//碰撞了检测反转挡板
-		if(otherCollider.tag == GlobalData.RigidBodyTag.cupRightRotate){
-			contact.disabled = true;
-			if(GlobalData.CupConfig.CupMoveDir == 'right' && this.rotateFlag == false){
-				this.rotateFlag = true;
-				this.scheduleOnce(this.rotateCup,0);
-			}
-		}else if(otherCollider.tag == GlobalData.RigidBodyTag.cupLeftRotate){
-			contact.disabled = true;
-			if(GlobalData.CupConfig.CupMoveDir == 'left' && this.rotateFlag == false){
-				this.rotateFlag = true;
-				this.scheduleOnce(this.rotateCup,0);
 			}
 		}
     },

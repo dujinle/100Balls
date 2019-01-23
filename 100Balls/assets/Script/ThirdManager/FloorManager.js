@@ -1,3 +1,4 @@
+var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -5,7 +6,6 @@ cc.Class({
 		audioManager:null,
     },
     onLoad () {
-		this.EventCustom = new cc.Event.EventCustom("BallFallEvent", true);
 	},
 	initAudio(audioManager){
 		this.audioManager = audioManager;
@@ -35,10 +35,9 @@ cc.Class({
 		var ballCom = node.getComponent('RigidBall');
 		if(ballCom.isAbled){
 			ballCom.isAbled = false;
-			this.EventCustom.setUserData({
+			EventManager.emit({
 				type:'FallLine'
 			});
-			this.node.dispatchEvent(this.EventCustom);
 			ballCom.fallRemove();
 		}
 	},
