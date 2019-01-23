@@ -192,27 +192,20 @@ cc.Class({
 		if(this.ballNum <= 0){
 			this.isAbled = false;
 			this.animState.stop();
-			this.rigidBody.type = cc.RigidBodyType.Dynamic;
-			this.rigidBody.gravityScale = 10;
-			//this.scheduleOnce(this.fallCup,0);
+			this.animState = this.anim.play('cupRightFallAnimation');
 		}
 	},
-	fallCup(){
-		this.rigidBody.type = cc.RigidBodyType.Dynamic;
-		this.rigidBody.gravityScale = 10;
+	cupToFloor(){
+		this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
+	},
+	cupBreakFinish(){
+		EventManager.emit({
+			type:'CupRemove',
+			uuid:this.node.uuid
+		})
 	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
-		//如果杯子碰到地板则销毁
-		if(otherCollider.tag == GlobalData.RigidBodyTag.floor && this.touchFloorMusic == false){
-			contact.disabled = true;
-			this.touchFloorMusic = true;
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
-			//this.node.getComponent(cc.RigidBody).type = cc.RigidBodyType.Static;
-			this.rigidBody.linearVelocity = cc.v2(0,0);
-			this.cupRemove();
-			return;
-		}
 		if(this.isAbled == false){
 			contact.disabled = true;
 			return;
