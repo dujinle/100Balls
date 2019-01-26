@@ -17,7 +17,7 @@
     "_parent": null,
     "_children": [],
     "_active": true,
-    "_level": 2,
+    "_level": 1,
     "_components": [
       {
         "__id__": 2
@@ -65,7 +65,7 @@
     "_position": {
       "__type__": "cc.Vec3",
       "x": 169,
-      "y": 362,
+      "y": 447,
       "z": 0
     },
     "_scale": {
@@ -131,48 +131,63 @@
     "points": [
       {
         "__type__": "cc.Vec2",
-        "x": -48.2,
-        "y": 42.1
+        "x": -48,
+        "y": 43
       },
       {
         "__type__": "cc.Vec2",
-        "x": -42.7,
-        "y": 38.5
+        "x": -48,
+        "y": 29
       },
       {
         "__type__": "cc.Vec2",
-        "x": -33.5,
-        "y": -40.9
+        "x": -39,
+        "y": -45
       },
       {
         "__type__": "cc.Vec2",
-        "x": -19.3,
-        "y": -49.4
+        "x": -35,
+        "y": -50
       },
       {
         "__type__": "cc.Vec2",
-        "x": 0.6,
-        "y": -50.3
+        "x": -33,
+        "y": -50
       },
       {
         "__type__": "cc.Vec2",
-        "x": 17.6,
-        "y": -48.9
+        "x": -30,
+        "y": -53
       },
       {
         "__type__": "cc.Vec2",
-        "x": 32.5,
-        "y": -42.3
+        "x": -15,
+        "y": -57
       },
       {
         "__type__": "cc.Vec2",
-        "x": 42,
-        "y": 36.3
+        "x": 15,
+        "y": -57
       },
       {
         "__type__": "cc.Vec2",
-        "x": 47.93,
-        "y": 41.01
+        "x": 30,
+        "y": -53
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 38,
+        "y": -47
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 48,
+        "y": 29
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 48,
+        "y": 43
       }
     ],
     "_id": ""
@@ -245,8 +260,8 @@
     "tag": 7,
     "_density": 10,
     "_sensor": false,
-    "_friction": 0,
-    "_restitution": 0.2,
+    "_friction": 0.2,
+    "_restitution": 0,
     "body": null,
     "loop": false,
     "points": [
@@ -368,7 +383,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "511d46e6-c373-4879-9702-d63f7d976e93"
     },
     "fileId": "abe+3HCwVFWpUG49rJT/Je",
     "sync": false

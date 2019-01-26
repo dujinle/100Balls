@@ -55,9 +55,17 @@ cc.Class({
 		}
 	},
 	syncSpeed(speed){
-		console.log(this.node.uuid,'syncSpeed',speed);
 		if(this.animState != null){
-			this.animState.speed = speed;
+			if(this.rotateFlag != true){
+				console.log(this.node.uuid,'syncSpeed',speed);
+				this.animState.speed = speed;
+			}else{
+				var self = this;
+				this.scheduleOnce(function(){
+					console.log(this.node.uuid,'syncSpeed',speed);
+					self.animState.speed = speed;
+				}.bind(this),this.rotateTime);
+			}
 		}
 	},
 	resumeMove(){
@@ -102,8 +110,8 @@ cc.Class({
 	},
 	resetStatus(flag){
 		this.ballNum = 0;
-		this.rotateFlag = false;
 		this.isAbled = true;
+		this.rotateFlag = false;
 		this.repairSpeedFlag = false;
 		this.touchFloorMusic = false;
 		if(flag == true){
@@ -161,15 +169,16 @@ cc.Class({
 		console.log("rotateCup start");
 		var self = this;
 		var size = this.node.getContentSize();
-		var rotateW = (120 + size.width/2)* (this.animState.speed/this.speed);
+		var rotateW = (120 + size.width/2) * (this.animState.speed/this.speed);
 		var leftW = this.width/2 - rotateW;
 		if(leftW < 0){
 			leftW = 0;
+			rotateW = this.width/2;
 		}
 		//1/1000m *this.speed
 		var delayTime = leftW/100 /(this.animState.speed/this.speed);
 		//var tt = (size.width * 1.5) / ((this.animState.speed/this.speed) * 100);
-		var tt = (240 + size.width)/100 /(this.animState.speed/this.speed);
+		var tt = rotateW * 2/100 /(this.animState.speed/this.speed);
 		console.log(rotateW,leftW,delayTime,tt);
 		var activeEnd = cc.callFunc(function(){
 			self.rotateFlag = false;
@@ -181,18 +190,31 @@ cc.Class({
 			self.clearBalls();
 		},this);
 		this.setCupLineClose(false);
-		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt, 360),activeEnd));
-		}else{
-			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt, -360),activeEnd));
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			ball.getComponent('RigidBall').delayLinerDamp(0,0);
 		}
-		this.node.runAction(cc.sequence(cc.delayTime(tt/2 + delayTime),fallMiddle));
+		this.rotateFlag = true;
+		this.rotateTime = tt;
+		if(GlobalData.CupConfig.CupMoveDir == 'right'){
+			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt/3, 180),cc.delayTime(tt/6),cc.rotateBy(tt/3, -180),activeEnd));
+		}else{
+			this.node.runAction(cc.sequence(cc.delayTime(delayTime),cc.rotateBy(tt/3, -180),cc.delayTime(tt/6),cc.rotateBy(tt/3, 180),activeEnd));
+		}
+		this.node.runAction(cc.sequence(cc.delayTime(delayTime + tt/3),fallMiddle));
 	},
 	checkFall(){
 		if(this.ballNum <= 0){
 			this.isAbled = false;
 			this.animState.stop();
+			console.log('checkFall',this.node.rotation);
 			this.animState = this.anim.play('cupRightFallAnimation');
+		}
+	},
+	ballInCup(){
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			ball.getComponent(cc.RigidBody).fallReset(false);
 		}
 	},
 	cupToFloor(){
@@ -220,7 +242,8 @@ cc.Class({
 				ballCom.isInCup = true;
 				//ballCom.unMoveStop();
 				//console.log('ball in cup:',ball.getComponent(cc.RigidBody));
-				//ballCom.initLinerDamp(1);
+				var tt = 0.5 / (this.animState.speed/this.speed);
+				ballCom.delayLinerDamp(tt,50);
 				this.ballNum += 1;
 				this.balls[otherCollider.node.uuid] = otherCollider.node;
 				this.setCupScoreLabel(otherCollider.node);

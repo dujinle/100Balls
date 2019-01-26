@@ -28,27 +28,11 @@ cc.Class({
 		}
 		*/
 	},
-	delayToStatic(time,flag){
-		this.unMoveStop();
-		/*
-		var name = 'delayToStatic' + this.node.uuid;
-		ScheduleManager.MyScheduleOnce(name,function(){
-			if(flag == true){
-				this.setRigidyType(50);
-			}else{
-				this.setRigidyType(0);
-			}
-		},time,this);
-		*/
-		if(flag == true){
-			this.scheduleOnce(this.setRigidyType.bind(this,20),time);
-		}else{
-			this.scheduleOnce(this.setRigidyType.bind(this,0),time);
-		}
+	delayLinerDamp(time,value){
+		this.scheduleOnce(this.setRigidDamp.bind(this,value),time);
 	},
 	setGravityScale(gravityRate){
 		this.rigidBody.gravityScale *= gravityRate;
-		//this.rigidBody.applyForceToCenter(force,flag);
 	},
 	fallReset(flag){
 		console.log(this.node.uuid,'fallReset');
@@ -60,8 +44,8 @@ cc.Class({
 		this.fallLine = false;
 		if(flag == true){
 			this.setColor(0);
+			this.setRigidDamp(0);
 			this.rigidBody.type = cc.RigidBodyType.Static;
-			//this.unMoveStop();
 		}
 	},
 	setColor(level){
@@ -70,22 +54,15 @@ cc.Class({
 		var colorMat = GlobalData.BallConfig.BallColorDic[this.color];
 		this.node.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
-	setRigidyType(num){
-		console.log(this.node.uuid,'setRigidyType',num);
-		if(num == 0){
-			this.rigidBody.type = cc.RigidBodyType.Dynamic;
-			this.isStatic = false;
-		}else{
-			this.rigidBody.type = cc.RigidBodyType.Static;
-			this.rigidBody.linearVelocity = cc.v2(0,0);
-			this.rigidBody.angularVelocity = 0;
-			this.isStatic = true;
-		}
+	setRigidDamp(num){
+		console.log(this.node.uuid,'setRigidDamp',num);
+		this.rigidBody.linearDamping = num;
+		this.rigidBody.angularDamping = num;
 	},
 	unMoveStop(){
 		//var name = 'delayToStatic' + this.node.uuid;
 		//ScheduleManager.UnMySchedule(name,this);
-		this.unschedule(this.setRigidyType);
+		this.unschedule(this.setRigidDamp);
 	},
 	fallRemove(){
 		var self = this;
