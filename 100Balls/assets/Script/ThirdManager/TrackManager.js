@@ -1,4 +1,5 @@
 var EventManager = require('EventManager');
+var util = require('util');
 cc.Class({
     extends: cc.Component,
 
@@ -127,6 +128,47 @@ cc.Class({
 			var cupCom = cupNode.getComponent('AnimRigidCup');
 			cupCom.resetStatus(true);
 			this.rigidCupPool.put(cupNode);
+		}
+	},
+	upLevelCup(flag){
+		let UpLevelIsValid = new Array();
+		for(let key in GlobalData.GameRunTime.CupNodesDic){
+			let cup = GlobalData.GameRunTime.CupNodesDic[key];
+			if(cup != null && cup.isValid){
+				var cupCom = cup.getComponent('AnimRigidCup');
+				if(flag == true){
+					//设置速度升级
+					cupCom.syncSpeed(GlobalData.GameRunTime.CurrentSpeed);
+				}
+				if(cupCom.UpLevelIsValid()){
+					UpLevelIsValid.push(cup);
+				}
+			}
+		}
+		let CupNode = util.getRandomObjForArray(UpLevelIsValid);
+		if(CupNode != -1){
+			let cupCom = CupNode.getComponent('AnimRigidCup');
+			if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
+				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
+				cupCom.setColor(cupCom.level + 1);
+			}
+		}
+	},
+	bigOneCup(){
+		let UpLevelIsValid = new Array();
+		for(let key in GlobalData.GameRunTime.CupNodesDic){
+			let cup = GlobalData.GameRunTime.CupNodesDic[key];
+			if(cup != null && cup.isValid){
+				let cupCom = cup.getComponent('AnimRigidCup');
+				if(cupCom.UpLevelIsValid()){
+					UpLevelIsValid.push(cup);
+				}
+			}
+		}
+		let CupNode = util.getRandomObjForArray(UpLevelIsValid);
+		if(CupNode != -1){
+			CupNode.scaleX *= (1 + GlobalData.CupConfig.CupSpeedArate);
+			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 		}
 	},
 	eventFunc(data){

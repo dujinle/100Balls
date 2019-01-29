@@ -35,7 +35,6 @@ GlobalData = {
 		contentLine:4,
 		cupInner:5,
 		cupLine:6,
-		cupSide:7,
 		cupFallRight:8,
 		cupFallLeft:9,
 		cupRightRotate:10,
@@ -47,7 +46,6 @@ GlobalData = {
 	GameRunTime:{
 		ContentBallsDic:{},
 		BallNodesPool:{},
-		BallNodesDic:{},
 		CupNodesDic:{},
 		AudioPlayNum:0,
 		BallUnFallNum:0,

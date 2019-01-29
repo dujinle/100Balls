@@ -7,7 +7,7 @@ cc.Class({
     properties: {
 		trickNode:cc.Node,
 		cupContent:cc.Node,
-		balls:cc.Node,
+		ballsNum:cc.Node,
 		rigidBalls:cc.Node,
 		contentCL:cc.Node,
 		floorNode:cc.Node,
@@ -16,7 +16,7 @@ cc.Class({
 		levelLabel:cc.Node,
 		startGameBoard:cc.Node,
 		mainGameBoard:cc.Node,
-		pauseButton:cc.Node,
+		buttonNodes:cc.Node,
 		audioManager:null,
     },
 
@@ -96,7 +96,7 @@ cc.Class({
 		this.schedule(this.loadUpdate,0.5);
 	},
 	start(){
-		this.pauseButton.active = false;
+		this.buttonNodes.active = false;
 		this.mainGameBoard.active = true;
 		this.startGameBoard.active = true;
 		this.startGameBoard.getComponent('StartGame').audioManager = this.audioManager;
@@ -105,9 +105,9 @@ cc.Class({
 	},
 	//第一次进入游戏初始化数据
 	initGame(){
-		this.initBalls();
+		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 		this.initFallBalls();
-		this.pauseButton.active = true;
+		this.buttonNodes.active = true;
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);
 		this.floorNode.getComponent('FloorManager').initAudio(this.audioManager);
@@ -128,33 +128,19 @@ cc.Class({
 				scene:'PauseGameScene',
 				type:null
 			});
+		}else if(customEventData == "C_Big"){
+			this.trickNode.getComponent('TrackManager').bigOneCup();
+		}else if(customEventData == "C_UpLevel"){
+			this.trickNode.getComponent('TrackManager').upLevelCup(false);
 		}
 	},
 	//再次进入游戏 数据重置
 	enterGame(){
-		for(var i = 0;i < this.balls.children.length;i++){
-			let ball = this.balls.children[i];
-			ball.active = true;
-		}
+		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 		this.initFallBalls();
 		this.trickNode.getComponent('TrackManager').startTrack();
 		this.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
-	},
-	initBalls(){
-		for(var i = 0;i < 10;i++){
-			for(var j = 0;j < GlobalData.BallConfig.BallRowArray[i];j++){
-				var ball = cc.instantiate(GlobalData.assets['BaseBall']);
-				this.balls.addChild(ball);
-				let ylevel = 5 - i;
-				var size = ball.getContentSize();
-				var yy = (size.height + 3) * ylevel - size.height/2;
-				let xlevel = GlobalData.BallConfig.BallRowArray[i]/2 - j;
-				var xx = (size.width + 3) * xlevel - size.width/2;
-				ball.setPosition(cc.v2(xx,yy));
-				GlobalData.GameRunTime.BallNodesDic[ball.uuid] = ball;
-			}
-		}
 	},
 	BallFallEvent(data){
 		var self = this;
@@ -226,26 +212,7 @@ cc.Class({
 					GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveMSpeed
 				}
 				setTimeout(function(){
-					let UpLevelIsValid = new Array();
-					for(let key in GlobalData.GameRunTime.CupNodesDic){
-						let cup = GlobalData.GameRunTime.CupNodesDic[key];
-						if(cup != null && cup.isValid){
-							//设置速度升级
-							var cupCom = cup.getComponent('AnimRigidCup');
-							cupCom.syncSpeed(GlobalData.GameRunTime.CurrentSpeed);
-							if(cupCom.UpLevelIsValid()){
-								UpLevelIsValid.push(cup);
-							}
-						}
-					}
-					let CupNode = util.getRandomObjForArray(UpLevelIsValid);
-					if(CupNode != -1){
-						let cupCom = CupNode.getComponent('AnimRigidCup');
-						if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
-							self.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
-							cupCom.setColor(cupCom.level + 1);
-						}
-					}
+					self.trickNode.getComponent('TrackManager').upLevelCup(true);
 				},time);
 			}
 		}
@@ -291,10 +258,7 @@ cc.Class({
 		}
 	},
 	initFallBalls(){
-		var length = this.balls.children.length;
 		for(var i = 0;i < GlobalData.BallConfig.BallPreFall;i++){
-			var ball = this.balls.children[--length];
-			ball.active = false;
 			let rigidBall = null;
 			if (GlobalData.GameRunTime.BallNodesPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
 				rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
@@ -302,17 +266,16 @@ cc.Class({
 				rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
 			}
 			this.rigidBalls.addChild(rigidBall);
-			rigidBall.setPosition(ball.getPosition());
+			rigidBall.setPosition(cc.v2(0,0));
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
+			this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 			//console.log('add rigidBall',rigidBall.getPosition());
 		}
 	},
 	fallOneBall(){
 		if(GlobalData.GameRunTime.BallUnFallNum > 0){
-			let ball = this.balls.children[--GlobalData.GameRunTime.BallUnFallNum];
-			ball.active = false;
 			let rigidBall = null;
 			if (GlobalData.GameRunTime.BallNodesPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
 				rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
@@ -320,9 +283,11 @@ cc.Class({
 				rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
 			}
 			this.rigidBalls.addChild(rigidBall);
-			rigidBall.setPosition(ball.getPosition());
+			rigidBall.setPosition(cc.v2(0,0));
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
+			GlobalData.GameRunTime.BallUnFallNum -= 1;
+			this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 			console.log('fallOneBall:',GlobalData.GameRunTime.BallNodesPool.size());
 		}
 	},
@@ -335,14 +300,6 @@ cc.Class({
 	clearGame(){
 		//清除球体
 		//console.log(GlobalData.GameRunTime);
-		if(GlobalData.GameRunTime.BallAbledNum > 0){
-			for(var key in GlobalData.GameRunTime.BallNodesDic){
-				var ball = GlobalData.GameRunTime.BallNodesDic[key];
-				if(ball.isValid){
-					ball.active = false;
-				}
-			}
-		}
 		for(var key in GlobalData.GameRunTime.ContentBallsDic){
 			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
 			rigidBall.getComponent('RigidBall').fallReset(true);
