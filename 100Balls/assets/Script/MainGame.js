@@ -1,6 +1,8 @@
 var util = require('util');
 var ThirdAPI = require('ThirdAPI');
+var PropManager = require('PropManager');
 var EventManager = require('EventManager');
+var WxVideoAd = require('WxVideoAd');
 cc.Class({
     extends: cc.Component,
 
@@ -38,10 +40,12 @@ cc.Class({
 				self.contentCL.getComponent('ContentCL').closeContent();
 			}
         }, this.node);
+		GlobalData.GameInfoConfig.juNum = 1;
 		ThirdAPI.loadLocalData();
 		this.loadDataSync();
 		EventManager.on(this.BallFallEvent,this);
 		this.startButton.getComponent(cc.Button).interactable = false;
+		
 		//打开物理属性 碰撞检测
 		//如果用了物理引擎，可以通过修改游戏帧率和检测的步长降低检测频率，提高性能。
 		this.pymanager = cc.director.getPhysicsManager();
@@ -66,7 +70,7 @@ cc.Class({
 		var self = this;
 		//异步加载动态数据
 		this.rate = 0;
-		this.resLength = 8;
+		this.resLength = 12;
 		GlobalData.assets = {};
 		this.loadUpdate = function(){
 			console.log("this.rate:" + self.rate);
@@ -82,6 +86,13 @@ cc.Class({
 				GlobalData.assets[key] = atlas._spriteFrames[key];
 			}
 			//self.rate = self.rate + 1;
+		});
+		cc.loader.loadResDir("dynImages", cc.SpriteFrame, function (err, assets) {
+			for(var i = 0;i < assets.length;i++){
+				console.log("load res :" + assets[i].name);
+				GlobalData.assets[assets[i].name] = assets[i];
+				self.rate = self.rate + 1;
+			}
 		});
 		cc.loader.loadResDir("prefabs",function (err, assets) {
 			for(var i = 0;i < assets.length;i++){
@@ -106,6 +117,7 @@ cc.Class({
 	//第一次进入游戏初始化数据
 	initGame(){
 		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
+		this.freshPropStatus();
 		this.initFallBalls();
 		this.buttonNodes.active = true;
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
@@ -120,6 +132,7 @@ cc.Class({
 	panelButtonCb(event,customEventData){
 		var self = this;
 		//继续游戏
+		console.log('panelButtonCb',customEventData);
 		this.audioManager.getComponent("AudioManager").play(GlobalData.AudioManager.ButtonClick);
 		if(customEventData == "P_show"){
 			this.audioManager.getComponent("AudioManager").pauseGameBg();
@@ -129,18 +142,122 @@ cc.Class({
 				type:null
 			});
 		}else if(customEventData == "C_Big"){
-			this.trickNode.getComponent('TrackManager').bigOneCup();
+			var ret = PropManager.checkPropAbled('PropBig');
+			if(ret == 0){
+				var propType = PropManager.getProp('PropBig');
+				if(propType != null){
+					this.trickNode.getComponent('TrackManager').stopTrack();
+					this.shareOrAV('PropBig',propType);
+				}
+			}else if(ret == 1){
+				this.trickNode.getComponent('TrackManager').bigOneCup();
+				this.freshPropStatus();
+			}
 		}else if(customEventData == "C_UpLevel"){
-			this.trickNode.getComponent('TrackManager').upLevelCup(false);
+			var ret = PropManager.checkPropAbled('PropUpLevel');
+			if(ret == 0){
+				var propType = PropManager.getProp('PropUpLevel');
+				if(propType != null){
+					this.trickNode.getComponent('TrackManager').stopTrack();
+					this.shareOrAV('PropUpLevel',propType);
+				}
+			}else if(ret == 1){
+				this.trickNode.getComponent('TrackManager').upLevelCup(false);
+				this.freshPropStatus();
+			}
+		}
+	},
+	shareOrAV(prop,type){
+		this.iscallBack = false;
+		this.propKey = prop;
+		if(type == "PropShare"){
+			this.shareSuccessCb = function(type, shareTicket, arg){
+				if(arg.iscallBack == false){
+					EventManager.emit({
+						type:'GetPropSuccess',
+						prop:arg.propKey
+					});
+				}
+				arg.iscallBack = true;
+			};
+			this.shareFailedCb = function(type,arg){
+				if(arg.iscallBack == false){
+					arg.trickNode.getComponent('TrackManager').continueTrack();
+					if(arg.failNode != null){
+						arg.failNode.stopAllActions();
+						arg.failNode.removeFromParent();
+						arg.failNode.destroy();
+						arg.failNode = null;
+					}
+					arg.failNode = cc.instantiate(GlobalData.assets['PBShareFail']);
+					arg.mainGameBoard.addChild(arg.failNode);
+					var actionEnd = cc.callFunc(function(){
+						if(arg.failNode != null){
+							arg.failNode.stopAllActions();
+							arg.failNode.removeFromParent();
+							arg.failNode.destroy();
+							arg.failNode = null;
+						}
+					},arg);
+					arg.failNode.runAction(cc.sequence(cc.fadeIn(0.5),cc.delayTime(1),cc.fadeOut(0.5),actionEnd));
+					console.log(type,arg);
+				}
+				arg.iscallBack = true;
+			};
+			var param = {
+				type:null,
+				arg:this,
+				successCallback:this.shareSuccessCb,
+				failCallback:this.shareFailedCb,
+				shareName:type,
+				isWait:true
+			};
+			if(GlobalData.cdnGameConfig.shareCustomSet == 0){
+				param.isWait = false;
+			}
+			ThirdAPI.shareGame(param);
+		}
+		else if(type == "PropAV"){
+			this.AVSuccessCb = function(arg){
+				EventManager.emit({
+					type:'GetPropSuccess',
+					prop:arg.propKey
+				});
+			};
+			this.AVFailedCb = function(arg){
+				arg.trickNode.getComponent('TrackManager').continueTrack();
+				if(arg.failNode != null){
+					arg.failNode.stopAllActions();
+					arg.failNode.removeFromParent();
+					arg.failNode.destroy();
+					arg.failNode = null;
+				}
+				arg.failNode = cc.instantiate(GlobalData.assets['PBShareFail']);
+				arg.failNode.getChildByName('tipsLabel').getComponent(cc.Label).string = "看完视频才能获得奖励，请再看一次";
+				arg.mainGameBoard.addChild(arg.failNode);
+				var actionEnd = cc.callFunc(function(){
+					if(arg.failNode != null){
+						arg.failNode.stopAllActions();
+						arg.failNode.removeFromParent();
+						arg.failNode.destroy();
+						arg.failNode = null;
+					}
+				},arg);
+				arg.failNode.runAction(cc.sequence(cc.fadeIn(0.5),cc.delayTime(1),cc.fadeOut(0.5),actionEnd));
+			};
+			WxVideoAd.initCreateReward(this.AVSuccessCb,this.AVFailedCb,this);
 		}
 	},
 	//再次进入游戏 数据重置
 	enterGame(){
+		GlobalData.GameInfoConfig.juNum += 1;
 		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
+		this.freshPropStatus();
 		this.initFallBalls();
 		this.trickNode.getComponent('TrackManager').startTrack();
 		this.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
+		ThirdAPI.updataGameInfo();
 	},
 	BallFallEvent(data){
 		var self = this;
@@ -256,6 +373,31 @@ cc.Class({
 				});
 			}
 		}
+		else if(data.type == 'GetPropSuccess'){
+			if(this.propFly != null){
+				this.propFly.stopAllActions();
+				this.propFly.removeFromParent();
+				this.propFly.destroy();
+				this.propFly = null;
+			}
+			this.propFly = cc.instantiate(GlobalData.assets['PBPropFly']);
+			this.mainGameBoard.addChild(this.propFly);
+			if(data.prop == 'PropBig'){
+				var buttonBig = this.buttonNodes.getChildByName('buttonBig');
+				this.propFly.getComponent('PropFly').startFly(0.2,'buttonBig',1,buttonBig.getPosition(),function(){
+					GlobalData.GamePropParam.bagNum[data.prop] += 1;
+					//ThirdAPI.updataGameInfo();
+					self.freshPropStatus();
+				});
+			}else if(data.prop == 'PropUpLevel'){
+				var buttonUpLevel = this.buttonNodes.getChildByName('buttonUpLevel');
+				this.propFly.getComponent('PropFly').startFly(0.2,'buttonUpLevel',1,buttonUpLevel.getPosition(),function(){
+					GlobalData.GamePropParam.bagNum[data.propKey] += 1;
+					//ThirdAPI.updataGameInfo();
+					self.freshPropStatus();
+				});
+			}
+		}
 	},
 	initFallBalls(){
 		for(var i = 0;i < GlobalData.BallConfig.BallPreFall;i++){
@@ -359,6 +501,24 @@ cc.Class({
 			board.destroy();
 		}
 		return null;
+	},
+	freshPropStatus(){
+		var buttonBig = this.buttonNodes.getChildByName('buttonBig');
+		if(GlobalData.GamePropParam.bagNum['PropBig'] > 0){
+			buttonBig.getChildByName("add").active = false;
+			buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropBig'];
+		}else{
+			buttonBig.getChildByName("add").active = true;
+			buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = '';
+		}
+		var buttonUpLevel = this.buttonNodes.getChildByName('buttonUpLevel');
+		if(GlobalData.GamePropParam.bagNum['PropUpLevel'] > 0){
+			buttonUpLevel.getChildByName("add").active = false;
+			buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropUpLevel'];
+		}else{
+			buttonUpLevel.getChildByName("add").active = true;
+			buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = '';
+		}
 	},
     // update (dt) {},
 });

@@ -115,6 +115,63 @@ GlobalData = {
 		[24,25],[0,21],[-24,25]
 	],
 	ScoreLevel:[1,2,3,4,5,6],
+	cdnGameConfig:{
+		refreshBanner:0,		//0 关闭	1打开
+		minShareTime:2.8,
+		gameModel:'crazy',
+		shareSuccessWeight:[1,1,1,1,1],
+		shareADLevel:50000,
+		PropShare:0.5,
+		PropAV:0.5,
+		shareCustomSet:1		//0 关闭 自定义分享 1打开自定义分享
+	},
+	//道具概率参数                                                                                                                
+	GamePropParam:{
+		bagNum:{
+			PropBig:0,
+			PropUpLevel:0,
+			PropAddBall:0
+		},
+		useNum:{
+			PropBig:0,
+			PropUpLevel:0,
+			PropAddBall:0
+		}
+	},
+	cdnPropParam:{	//道具自定义参数
+		PropUnLock:{	//道具解锁盘数
+			PropBig:3,
+			PropUpLevel:3,
+			PropAddBall:3
+		},
+		PropParam:{
+			//变大概率参数设置
+			PropBig:{
+				bagNum:2,
+				useNum:2,
+			},
+			//升级概率参数设置
+			PropUpLevel:{
+				bagNum:2,
+				useNum:2
+			},
+			//加5球概率参数设置
+			PropAddBall:{
+				bagNum:-1,
+				useNum:-1
+			}
+		},
+		PropShareOrADRate:{
+			PropBig:{
+				PropShare:1,
+				PropAV:0
+			},
+			PropUpLevel:{
+				PropShare:1,
+				PropAV:0
+			}
+		}
+	},
 	cdnShareImages:["res/raw-assets/resources/shareImages/shareDefault.d3b6b.png"],
 	cdnTexts:["你介意男生玩这个游戏吗?"]
 };

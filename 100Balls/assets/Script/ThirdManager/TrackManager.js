@@ -151,6 +151,9 @@ cc.Class({
 			if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
 				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 				cupCom.setColor(cupCom.level + 1);
+				if(flag == false){
+					GlobalData.GamePropParam.useNum['PropUpLevel'] -= 1;
+				}
 			}
 		}
 	},
@@ -169,6 +172,7 @@ cc.Class({
 		if(CupNode != -1){
 			CupNode.scaleX *= (1 + GlobalData.CupConfig.CupSpeedArate);
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
+			GlobalData.GamePropParam.useNum['PropBig'] -= 1;
 		}
 	},
 	eventFunc(data){
