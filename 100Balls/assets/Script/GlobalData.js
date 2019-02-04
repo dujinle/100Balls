@@ -140,9 +140,9 @@ GlobalData = {
 	},
 	cdnPropParam:{	//道具自定义参数
 		PropUnLock:{	//道具解锁盘数
-			PropBig:3,
-			PropUpLevel:3,
-			PropAddBall:3
+			PropBig:1,
+			PropUpLevel:1,
+			PropAddBall:1
 		},
 		PropParam:{
 			//变大概率参数设置
@@ -172,6 +172,6 @@ GlobalData = {
 			}
 		}
 	},
-	cdnShareImages:["res/raw-assets/resources/shareImages/shareDefault.d3b6b.png"],
+	cdnShareImages:["res/raw-assets/d7/d79c420a-58c2-4663-87c0-3119e3f3fd94.d3b6b.png"],
 	cdnTexts:["你介意男生玩这个游戏吗?"]
 };

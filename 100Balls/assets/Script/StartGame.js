@@ -48,8 +48,8 @@ cc.Class({
 		var param = {
 			type:null,
 			arg:null,
-			successCallback:this.shareSuccessCb,
-			failCallback:this.shareFailedCb,
+			successCallback:this.shareSuccessCb.bind(this),
+			failCallback:this.shareFailedCb.bind(this),
 			shareName:'share',
 			isWait:false
 		};

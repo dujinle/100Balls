@@ -172,43 +172,27 @@ cc.Class({
 		this.propKey = prop;
 		if(type == "PropShare"){
 			this.shareSuccessCb = function(type, shareTicket, arg){
-				if(arg.iscallBack == false){
+				if(this.iscallBack == false){
+					this.trickNode.getComponent('TrackManager').continueTrack();
 					EventManager.emit({
 						type:'GetPropSuccess',
-						prop:arg.propKey
+						prop:this.propKey
 					});
 				}
-				arg.iscallBack = true;
+				this.iscallBack = true;
 			};
 			this.shareFailedCb = function(type,arg){
-				if(arg.iscallBack == false){
-					arg.trickNode.getComponent('TrackManager').continueTrack();
-					if(arg.failNode != null){
-						arg.failNode.stopAllActions();
-						arg.failNode.removeFromParent();
-						arg.failNode.destroy();
-						arg.failNode = null;
-					}
-					arg.failNode = cc.instantiate(GlobalData.assets['PBShareFail']);
-					arg.mainGameBoard.addChild(arg.failNode);
-					var actionEnd = cc.callFunc(function(){
-						if(arg.failNode != null){
-							arg.failNode.stopAllActions();
-							arg.failNode.removeFromParent();
-							arg.failNode.destroy();
-							arg.failNode = null;
-						}
-					},arg);
-					arg.failNode.runAction(cc.sequence(cc.fadeIn(0.5),cc.delayTime(1),cc.fadeOut(0.5),actionEnd));
-					console.log(type,arg);
+				if(this.iscallBack == false){
+					this.trickNode.getComponent('TrackManager').continueTrack();
+					this.showFailInfo(null);
 				}
-				arg.iscallBack = true;
+				this.iscallBack = true;
 			};
 			var param = {
 				type:null,
-				arg:this,
-				successCallback:this.shareSuccessCb,
-				failCallback:this.shareFailedCb,
+				arg:null,
+				successCallback:this.shareSuccessCb.bind(this),
+				failCallback:this.shareFailedCb.bind(this),
 				shareName:type,
 				isWait:true
 			};
@@ -219,34 +203,41 @@ cc.Class({
 		}
 		else if(type == "PropAV"){
 			this.AVSuccessCb = function(arg){
+				this.trickNode.getComponent('TrackManager').continueTrack();
 				EventManager.emit({
 					type:'GetPropSuccess',
 					prop:arg.propKey
 				});
-			};
+			}.bind(this);
 			this.AVFailedCb = function(arg){
-				arg.trickNode.getComponent('TrackManager').continueTrack();
-				if(arg.failNode != null){
-					arg.failNode.stopAllActions();
-					arg.failNode.removeFromParent();
-					arg.failNode.destroy();
-					arg.failNode = null;
-				}
-				arg.failNode = cc.instantiate(GlobalData.assets['PBShareFail']);
-				arg.failNode.getChildByName('tipsLabel').getComponent(cc.Label).string = "看完视频才能获得奖励，请再看一次";
-				arg.mainGameBoard.addChild(arg.failNode);
-				var actionEnd = cc.callFunc(function(){
-					if(arg.failNode != null){
-						arg.failNode.stopAllActions();
-						arg.failNode.removeFromParent();
-						arg.failNode.destroy();
-						arg.failNode = null;
-					}
-				},arg);
-				arg.failNode.runAction(cc.sequence(cc.fadeIn(0.5),cc.delayTime(1),cc.fadeOut(0.5),actionEnd));
-			};
-			WxVideoAd.initCreateReward(this.AVSuccessCb,this.AVFailedCb,this);
+				this.trickNode.getComponent('TrackManager').continueTrack();
+				this.showFailInfo("看完视频才能获得奖励，请再看一次");
+			}.bind(this);
+			WxVideoAd.initCreateReward(this.AVSuccessCb,this.AVFailedCb,null);
 		}
+	},
+	showFailInfo(msg){
+		if(this.failNode != null){
+			this.failNode.stopAllActions();
+			this.failNode.removeFromParent();
+			this.failNode.destroy();
+			this.failNode = null;
+		}
+		this.failNode = cc.instantiate(GlobalData.assets['PBShareFail']);
+		this.mainGameBoard.addChild(this.failNode);
+		this.failNode.setPosition(cc.v2(0,0));
+		if(msg != null){
+			this.failNode.getChildByName('tipsLabel').getComponent(cc.Label).string = msg;
+		}
+		var actionEnd = cc.callFunc(function(){
+			if(this.failNode != null){
+				this.failNode.stopAllActions();
+				this.failNode.removeFromParent();
+				this.failNode.destroy();
+				this.failNode = null;
+			}
+		}.bind(this),this);
+		this.failNode.runAction(cc.sequence(cc.fadeIn(0.5),cc.delayTime(1),cc.fadeOut(0.5),actionEnd));
 	},
 	//再次进入游戏 数据重置
 	enterGame(){
@@ -382,6 +373,7 @@ cc.Class({
 			}
 			this.propFly = cc.instantiate(GlobalData.assets['PBPropFly']);
 			this.mainGameBoard.addChild(this.propFly);
+			this.propFly.setPosition(cc.v2(0,0));
 			if(data.prop == 'PropBig'){
 				var buttonBig = this.buttonNodes.getChildByName('buttonBig');
 				this.propFly.getComponent('PropFly').startFly(0.2,'buttonBig',1,buttonBig.getPosition(),function(){
@@ -504,20 +496,30 @@ cc.Class({
 	},
 	freshPropStatus(){
 		var buttonBig = this.buttonNodes.getChildByName('buttonBig');
-		if(GlobalData.GamePropParam.bagNum['PropBig'] > 0){
-			buttonBig.getChildByName("add").active = false;
-			buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropBig'];
+		if(GlobalData.cdnPropParam.PropUnLock['PropBig'] <= GlobalData.GameInfoConfig.juNum){
+			buttonBig.active = true;
+			if(GlobalData.GamePropParam.bagNum['PropBig'] > 0){
+				buttonBig.getChildByName("add").active = false;
+				buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropBig'];
+			}else{
+				buttonBig.getChildByName("add").active = true;
+				buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = '';
+			}
 		}else{
-			buttonBig.getChildByName("add").active = true;
-			buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = '';
+			buttonBig.active = false;
 		}
 		var buttonUpLevel = this.buttonNodes.getChildByName('buttonUpLevel');
-		if(GlobalData.GamePropParam.bagNum['PropUpLevel'] > 0){
-			buttonUpLevel.getChildByName("add").active = false;
-			buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropUpLevel'];
+		if(GlobalData.cdnPropParam.PropUnLock['PropUpLevel'] <= GlobalData.GameInfoConfig.juNum){
+			buttonUpLevel.active = true;
+			if(GlobalData.GamePropParam.bagNum['PropUpLevel'] > 0){
+				buttonUpLevel.getChildByName("add").active = false;
+				buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropUpLevel'];
+			}else{
+				buttonUpLevel.getChildByName("add").active = true;
+				buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = '';
+			}
 		}else{
-			buttonUpLevel.getChildByName("add").active = true;
-			buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = '';
+			buttonUpLevel.active = false;
 		}
 	},
     // update (dt) {},
