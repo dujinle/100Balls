@@ -206,7 +206,7 @@ cc.Class({
 				this.trickNode.getComponent('TrackManager').continueTrack();
 				EventManager.emit({
 					type:'GetPropSuccess',
-					prop:arg.propKey
+					prop:this.propKey
 				});
 			}.bind(this);
 			this.AVFailedCb = function(arg){

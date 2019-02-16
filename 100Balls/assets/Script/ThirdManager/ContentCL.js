@@ -56,7 +56,7 @@ cc.Class({
 		}
 	},
 	closeContent(){
-		this.unschedule(this.closeAllBall);
+		//this.unschedule(this.closeAllBall);
 		if(this.physisContentClose != null){
 			this.physisContentClose.enabled = true;
 		}

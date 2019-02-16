@@ -28,6 +28,19 @@ cc.Class({
 		}
 		*/
 	},
+	setRigidBodyType(type){
+		if(this.rigidBody != null){
+			this.rigidBody.type = type;
+		}
+	},
+	delayToStatic(flag,time){
+		this.unschedule(this.setRigidBodyType);
+		if(flag == true){
+			this.scheduleOnce(this.setRigidBodyType.bind(this,cc.RigidBodyType.Static),time);
+		}else{
+			this.scheduleOnce(this.setRigidBodyType.bind(this,cc.RigidBodyType.Dynamic),time);
+		}
+	},
 	delayLinerDamp(time,value){
 		this.scheduleOnce(this.setRigidDamp.bind(this,value),time);
 	},
