@@ -152,7 +152,7 @@ cc.Class({
 				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 				cupCom.setColor(cupCom.level + 1);
 				if(flag == false){
-					GlobalData.GamePropParam.useNum['PropUpLevel'] -= 1;
+					GlobalData.GamePropParam.useNum['PropUpLevel'] += 1;
 				}
 			}
 		}
@@ -171,8 +171,9 @@ cc.Class({
 		let CupNode = util.getRandomObjForArray(UpLevelIsValid);
 		if(CupNode != -1){
 			CupNode.scaleX *= (1 + GlobalData.CupConfig.CupSpeedArate);
+			CupNode.scaleY *= (1 + GlobalData.CupConfig.CupSpeedArate);
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
-			GlobalData.GamePropParam.useNum['PropBig'] -= 1;
+			GlobalData.GamePropParam.useNum['PropBig'] += 1;
 		}
 	},
 	eventFunc(data){

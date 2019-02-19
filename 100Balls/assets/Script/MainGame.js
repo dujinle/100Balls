@@ -107,6 +107,7 @@ cc.Class({
 		this.schedule(this.loadUpdate,0.5);
 	},
 	start(){
+		ThirdAPI.loadCDNData(null);
 		this.buttonNodes.active = false;
 		this.mainGameBoard.active = true;
 		this.startGameBoard.active = true;
@@ -142,28 +143,16 @@ cc.Class({
 				type:null
 			});
 		}else if(customEventData == "C_Big"){
-			var ret = PropManager.checkPropAbled('PropBig');
-			if(ret == 0){
-				var propType = PropManager.getProp('PropBig');
-				if(propType != null){
-					this.trickNode.getComponent('TrackManager').stopTrack();
-					this.shareOrAV('PropBig',propType);
-				}
-			}else if(ret == 1){
-				this.trickNode.getComponent('TrackManager').bigOneCup();
-				this.freshPropStatus();
+			var propType = PropManager.getProp('PropBig');
+			if(propType != null){
+				this.trickNode.getComponent('TrackManager').stopTrack();
+				this.shareOrAV('PropBig',propType);
 			}
 		}else if(customEventData == "C_UpLevel"){
-			var ret = PropManager.checkPropAbled('PropUpLevel');
-			if(ret == 0){
-				var propType = PropManager.getProp('PropUpLevel');
-				if(propType != null){
-					this.trickNode.getComponent('TrackManager').stopTrack();
-					this.shareOrAV('PropUpLevel',propType);
-				}
-			}else if(ret == 1){
-				this.trickNode.getComponent('TrackManager').upLevelCup(false);
-				this.freshPropStatus();
+			var propType = PropManager.getProp('PropUpLevel');
+			if(propType != null){
+				this.trickNode.getComponent('TrackManager').stopTrack();
+				this.shareOrAV('PropUpLevel',propType);
 			}
 		}
 	},
@@ -365,29 +354,12 @@ cc.Class({
 			}
 		}
 		else if(data.type == 'GetPropSuccess'){
-			if(this.propFly != null){
-				this.propFly.stopAllActions();
-				this.propFly.removeFromParent();
-				this.propFly.destroy();
-				this.propFly = null;
-			}
-			this.propFly = cc.instantiate(GlobalData.assets['PBPropFly']);
-			this.mainGameBoard.addChild(this.propFly);
-			this.propFly.setPosition(cc.v2(0,0));
 			if(data.prop == 'PropBig'){
-				var buttonBig = this.buttonNodes.getChildByName('buttonBig');
-				this.propFly.getComponent('PropFly').startFly(0.2,'buttonBig',1,buttonBig.getPosition(),function(){
-					GlobalData.GamePropParam.bagNum[data.prop] += 1;
-					//ThirdAPI.updataGameInfo();
-					self.freshPropStatus();
-				});
+				this.trickNode.getComponent('TrackManager').bigOneCup();
+				this.freshPropStatus();
 			}else if(data.prop == 'PropUpLevel'){
-				var buttonUpLevel = this.buttonNodes.getChildByName('buttonUpLevel');
-				this.propFly.getComponent('PropFly').startFly(0.2,'buttonUpLevel',1,buttonUpLevel.getPosition(),function(){
-					GlobalData.GamePropParam.bagNum[data.propKey] += 1;
-					//ThirdAPI.updataGameInfo();
-					self.freshPropStatus();
-				});
+				this.trickNode.getComponent('TrackManager').upLevelCup(false);
+				this.freshPropStatus();
 			}
 		}
 	},
@@ -497,12 +469,15 @@ cc.Class({
 	freshPropStatus(){
 		var buttonBig = this.buttonNodes.getChildByName('buttonBig');
 		if(GlobalData.cdnPropParam.PropUnLock['PropBig'] <= GlobalData.GameInfoConfig.juNum){
+			var addNode = buttonBig.getChildByName("add");
 			buttonBig.active = true;
-			if(GlobalData.GamePropParam.bagNum['PropBig'] > 0){
-				buttonBig.getChildByName("add").active = false;
-				buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropBig'];
+			if(GlobalData.GamePropParam.useNum['PropBig'] < GlobalData.cdnPropParam.PropParam['PropBig'].useNum){
+				addNode.active = true;
+				//buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropBig'];
+				buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = '';
 			}else{
-				buttonBig.getChildByName("add").active = true;
+				addNode.active = true;
+				addNode.color = new cc.Color(127, 127, 127);
 				buttonBig.getChildByName("propBigNum").getComponent(cc.Label).string = '';
 			}
 		}else{
@@ -510,12 +485,15 @@ cc.Class({
 		}
 		var buttonUpLevel = this.buttonNodes.getChildByName('buttonUpLevel');
 		if(GlobalData.cdnPropParam.PropUnLock['PropUpLevel'] <= GlobalData.GameInfoConfig.juNum){
+			var addNode = buttonUpLevel.getChildByName("add");
 			buttonUpLevel.active = true;
-			if(GlobalData.GamePropParam.bagNum['PropUpLevel'] > 0){
-				buttonUpLevel.getChildByName("add").active = false;
-				buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropUpLevel'];
+			if(GlobalData.GamePropParam.bagNum['PropUpLevel'] < GlobalData.cdnPropParam.PropParam['PropUpLevel'].useNum){
+				addNode.active = true;
+				//buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = "x" + GlobalData.GamePropParam.bagNum['PropUpLevel'];
+				buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = '';
 			}else{
-				buttonUpLevel.getChildByName("add").active = true;
+				addNode.color = new cc.Color(127, 127, 127);
+				addNode.active = true;
 				buttonUpLevel.getChildByName("propUpNum").getComponent(cc.Label).string = '';
 			}
 		}else{

@@ -1,4 +1,6 @@
 GlobalData = {
+	cdnWebsite: "https://alicdn.zhituokeji.com/",
+	cdnFileDefaultPath:"minigame/100balls/cdnParam1.0.json",
 	AudioManager:{
 		ButtonClick:0,
 		//Ball中的音乐
@@ -66,6 +68,7 @@ GlobalData = {
 		linerDamp:0,
 		juNum:0
 	},
+	cdnCopyKeys:[],
 	cdnGameConfig:{
 		refreshBanner:0,		//0 关闭	1打开
 		minShareTime:2,
@@ -74,14 +77,13 @@ GlobalData = {
 		shareCustomSet:1		//0 关闭 自定义分享 1打开自定义分享
 	},
 	CupConfig:{
-		CupColor:['White','Green','Blue','Violet','Orange','Red'],
+		CupColor:['White','Green','Blue','Violet','Red'],
 		CupColorDic:{
 			White:[255,255,255],
-			Green:[0,128,0],
-			Blue:[0,0,255],
-			Violet:[128,0,128],
-			Orange:[255,165,0],
-			Red:[255,0,0]
+			Green:[65,255,152],
+			Blue:[35,164,255],
+			Violet:[208,61,234],
+			Red:[245,27,68]
 		},
 		CupCreatNum:6,
 		CupMoveSpeed:0.15,
@@ -92,29 +94,21 @@ GlobalData = {
 		CupUpLevel:3
 	},
 	BallConfig:{
-		BallColor:['Yellow','Green','Blue','Violet','Orange','Red'],
+		BallColor:['Yellow','Green','Blue','Violet','Red'],
 		BallColorDic:{
-			Yellow:[255,255,0],
-			Green:[0,128,0],
-			Blue:[0,0,255],
-			Violet:[128,0,128],
-			Orange:[255,165,0],
-			Red:[255,0,0]
+			Yellow:[255,254,108],
+			Green:[65,255,152],
+			Blue:[35,164,255],
+			Violet:[208,61,234],
+			Red:[245,27,68]
 		},
 		BallGravityScale:5,
 		BallUpLevel:1,
 		BallTotalNum:100,
 		BallGravityScale:10,
-		BallPreFall:20,
-		BallRowArray:[8,9,10,11,12,12,11,10,9,8]
+		BallPreFall:30
 	},
-	BallInCupPos:[
-		[21,-35],[0,-39],[-21,-35],
-		[22,-15],[0,-19],[-22,-15],
-		[23,5],[0,1],[-23,5],
-		[24,25],[0,21],[-24,25]
-	],
-	ScoreLevel:[1,2,3,4,5,6],
+	ScoreLevel:[1,2,3,4,6],
 	cdnGameConfig:{
 		refreshBanner:0,		//0 关闭	1打开
 		minShareTime:2.8,
@@ -147,13 +141,13 @@ GlobalData = {
 		PropParam:{
 			//变大概率参数设置
 			PropBig:{
-				bagNum:2,
-				useNum:2,
+				bagNum:1,
+				useNum:1,
 			},
 			//升级概率参数设置
 			PropUpLevel:{
-				bagNum:2,
-				useNum:2
+				bagNum:1,
+				useNum:1
 			},
 			//加5球概率参数设置
 			PropAddBall:{

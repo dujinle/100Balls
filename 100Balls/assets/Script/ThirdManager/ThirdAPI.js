@@ -18,19 +18,22 @@ let ThirdAPI = {
 			if(storage != null && storage != ""){
 				let localData = JSON.parse(storage);
                 //兼容新添加的数据
-				util.updateObj(GlobalData,localData,null);
+				util.updateObj(GlobalData,localData,GlobalData.cdnCopyKeys);
 				console.log(GlobalData);
             }
         } catch (error) {
 			console.log(error);
 		}
     },
-    loadCDNData:function(){
+    loadCDNData:function(callback){
 		var url = GlobalData.cdnWebsite + GlobalData.cdnFileDefaultPath;
 		util.httpGET(url,null,function(code,data){
 			if(code == 200){
-				util.updateObj(GlobalData,data,null);
+				util.updateObj(GlobalData,data,GlobalData.cdnCopyKeys);
 				console.log(GlobalData);
+				if(callback){
+                    callback();
+                }
 			}
 		});
 	},
