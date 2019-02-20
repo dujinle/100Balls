@@ -1,6 +1,6 @@
 GlobalData = {
 	cdnWebsite: "https://alicdn.zhituokeji.com/",
-	cdnFileDefaultPath:"minigame/100balls/cdnParam1.0.json",
+	cdnFileDefaultPath:"minigame/jointdevelopment/100balls/cdnParam1.0.json",
 	AudioManager:{
 		ButtonClick:0,
 		//Ball中的音乐
