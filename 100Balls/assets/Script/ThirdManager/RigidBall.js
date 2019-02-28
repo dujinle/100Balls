@@ -22,16 +22,22 @@ cc.Class({
 		}
 		this.rigidBody.gravityScale = GlobalData.BallConfig.BallGravityScale;
 		this.rigidBody.type = cc.RigidBodyType.Dynamic;
-		/*
-		if(GlobalData.GameInfoConfig.gameStatus == 0){
-			this.delayToStatic(1,true);
-		}
-		*/
 	},
 	setRigidBodyType(type){
 		if(this.rigidBody != null){
 			this.rigidBody.type = type;
 		}
+	},
+	swapParent(pnode,time){
+		this.node.removeFromParent();
+		this.scheduleOnce(function(){
+			var pPos = pnode.getPosition();
+			var pos = this.node.getPosition();
+			this.rigidBody.enabled = false;
+			pnode.addChild(this.node);
+			this.node.setPosition(cc.v2(pos.x - pPos.x,pos.y - pPos.y));
+			
+		}.bind(this),time);
 	},
 	delayToStatic(flag,time){
 		this.unschedule(this.setRigidBodyType);

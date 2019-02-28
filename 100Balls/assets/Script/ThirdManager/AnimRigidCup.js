@@ -210,12 +210,14 @@ cc.Class({
 			console.log('checkFall',this.node.rotation);
 			this.animState = this.anim.play('cupRightFallAnimation');
 		}
-	},
-	ballInCup(){
-		for(var key in this.balls){
-			var ball = this.balls[key];
-			ball.getComponent(cc.RigidBody).fallReset(false);
+		/*
+		else{
+			for(var key in this.balls){
+				var ball = this.balls[key];
+				ball.getComponent('RigidBall').swapParent(this.node,0);
+			}
 		}
+		*/
 	},
 	cupToFloor(){
 		this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
@@ -243,7 +245,7 @@ cc.Class({
 				//ballCom.unMoveStop();
 				//console.log('ball in cup:',ball.getComponent(cc.RigidBody));
 				var tt = 0.5 / (this.animState.speed/this.speed);
-				ballCom.delayLinerDamp(tt,50);
+				ballCom.delayLinerDamp(tt,100);
 				this.ballNum += 1;
 				this.balls[otherCollider.node.uuid] = otherCollider.node;
 				this.setCupScoreLabel(otherCollider.node);

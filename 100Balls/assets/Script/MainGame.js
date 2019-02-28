@@ -119,7 +119,7 @@ cc.Class({
 	initGame(){
 		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 		this.freshPropStatus();
-		this.initFallBalls();
+		//this.initFallBalls();
 		this.buttonNodes.active = true;
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);
@@ -364,6 +364,7 @@ cc.Class({
 		}
 	},
 	initFallBalls(){
+		var size = this.rigidBalls.getContentSize();
 		for(var i = 0;i < GlobalData.BallConfig.BallPreFall;i++){
 			let rigidBall = null;
 			if (GlobalData.GameRunTime.BallNodesPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
@@ -372,7 +373,8 @@ cc.Class({
 				rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
 			}
 			this.rigidBalls.addChild(rigidBall);
-			rigidBall.setPosition(cc.v2(0,0));
+			let random = Math.random();
+			rigidBall.setPosition(cc.v2(size.width/2 *random,0));
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
