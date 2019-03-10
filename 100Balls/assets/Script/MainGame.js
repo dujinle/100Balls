@@ -119,7 +119,7 @@ cc.Class({
 	initGame(){
 		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 		this.freshPropStatus();
-		//this.initFallBalls();
+		this.initFallBalls();
 		this.buttonNodes.active = true;
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.trickNode.getComponent('TrackManager').initTrack(this.audioManager);

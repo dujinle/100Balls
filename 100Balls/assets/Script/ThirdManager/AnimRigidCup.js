@@ -187,6 +187,12 @@ cc.Class({
 		},this);
 		
 		var fallMiddle = cc.callFunc(function(){
+			/*
+			for(var key in self.balls){
+				var ball = self.balls[key];
+				ball.getComponent('RigidBall').delayLinerDamp(0,0);
+			}
+			*/
 			self.clearBalls();
 		},this);
 		this.setCupLineClose(false);
@@ -210,14 +216,12 @@ cc.Class({
 			console.log('checkFall',this.node.rotation);
 			this.animState = this.anim.play('cupRightFallAnimation');
 		}
-		/*
 		else{
 			for(var key in this.balls){
 				var ball = this.balls[key];
-				ball.getComponent('RigidBall').swapParent(this.node,0);
+				ball.getComponent('RigidBall').delayLinerDamp(0,50);
 			}
 		}
-		*/
 	},
 	cupToFloor(){
 		this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupTouchFloor);
@@ -237,15 +241,15 @@ cc.Class({
 		var self = this;
 		//如果碰撞瓶盖则代表球进入
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
-			contact.disabled = true;
 			if(this.balls[otherCollider.node.uuid] == null){
+				contact.disabled = true;
 				var ball = otherCollider.node;
 				var ballCom = ball.getComponent('RigidBall');
 				ballCom.isInCup = true;
 				//ballCom.unMoveStop();
 				//console.log('ball in cup:',ball.getComponent(cc.RigidBody));
-				var tt = 0.5 / (this.animState.speed/this.speed);
-				ballCom.delayLinerDamp(tt,100);
+				//var tt = 0.5 / (this.animState.speed/this.speed);
+				//ballCom.delayLinerDamp(tt,50);
 				this.ballNum += 1;
 				this.balls[otherCollider.node.uuid] = otherCollider.node;
 				this.setCupScoreLabel(otherCollider.node);
