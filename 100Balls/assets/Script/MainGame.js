@@ -70,7 +70,7 @@ cc.Class({
 		var self = this;
 		//异步加载动态数据
 		this.rate = 0;
-		this.resLength = 12;
+		this.resLength = 10;
 		GlobalData.assets = {};
 		this.loadUpdate = function(){
 			console.log("this.rate:" + self.rate);
@@ -164,7 +164,7 @@ cc.Class({
 					this.trickNode.getComponent('TrackManager').continueTrack();
 					EventManager.emit({
 						type:'GetPropSuccess',
-						prop:openType
+						prop:prop
 					});
 				}
 				this.iscallBack = true;
@@ -194,7 +194,7 @@ cc.Class({
 				this.trickNode.getComponent('TrackManager').continueTrack();
 				EventManager.emit({
 					type:'GetPropSuccess',
-					prop:openType
+					prop:prop
 				});
 			}.bind(this);
 			this.AVFailedCb = function(arg){
