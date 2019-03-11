@@ -465,7 +465,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 200,
+      "width": 160,
       "height": 40
     },
     "_anchorPoint": {
@@ -511,8 +511,8 @@
     "_srcBlendFactor": 1,
     "_dstBlendFactor": 771,
     "_useOriginalSize": false,
-    "_string": "查看群排行",
-    "_N$string": "查看群排行",
+    "_string": "查看排行",
+    "_N$string": "查看排行",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": false,
@@ -639,7 +639,7 @@
       "__id__": 1
     },
     "component": "RankGame",
-    "handler": "groupRankCb",
+    "handler": "friendRankCb",
     "customEventData": ""
   },
   {

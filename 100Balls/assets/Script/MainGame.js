@@ -156,16 +156,15 @@ cc.Class({
 			}
 		}
 	},
-	shareOrAV(prop,type){
+	shareOrAV(prop,openType){
 		this.iscallBack = false;
-		this.propKey = prop;
-		if(type == "PropShare"){
+		if(openType == "PropShare"){
 			this.shareSuccessCb = function(type, shareTicket, arg){
 				if(this.iscallBack == false){
 					this.trickNode.getComponent('TrackManager').continueTrack();
 					EventManager.emit({
 						type:'GetPropSuccess',
-						prop:this.propKey
+						prop:openType
 					});
 				}
 				this.iscallBack = true;
@@ -173,7 +172,7 @@ cc.Class({
 			this.shareFailedCb = function(type,arg){
 				if(this.iscallBack == false){
 					this.trickNode.getComponent('TrackManager').continueTrack();
-					this.showFailInfo(null);
+					this.showFailInfo(openType,prop);
 				}
 				this.iscallBack = true;
 			};
@@ -182,7 +181,7 @@ cc.Class({
 				arg:null,
 				successCallback:this.shareSuccessCb.bind(this),
 				failCallback:this.shareFailedCb.bind(this),
-				shareName:type,
+				shareName:prop,
 				isWait:true
 			};
 			if(GlobalData.cdnGameConfig.shareCustomSet == 0){
@@ -190,22 +189,42 @@ cc.Class({
 			}
 			ThirdAPI.shareGame(param);
 		}
-		else if(type == "PropAV"){
+		else if(openType == "PropAV"){
 			this.AVSuccessCb = function(arg){
 				this.trickNode.getComponent('TrackManager').continueTrack();
 				EventManager.emit({
 					type:'GetPropSuccess',
-					prop:this.propKey
+					prop:openType
 				});
 			}.bind(this);
 			this.AVFailedCb = function(arg){
 				this.trickNode.getComponent('TrackManager').continueTrack();
-				this.showFailInfo("看完视频才能获得奖励，请再看一次");
+				this.showFailInfo(openType,prop);
 			}.bind(this);
 			WxVideoAd.initCreateReward(this.AVSuccessCb,this.AVFailedCb,null);
 		}
 	},
-	showFailInfo(msg){
+	showFailInfo(openType,prop){
+		try{
+			var self = this;
+			var content = '请分享到不同的群获得更多的好友帮助!';
+			if(openType == 'PropAV'){
+				content = '看完视频才能获得奖励，请再看一次!';
+			}
+			wx.showModal({
+				title:'提示',
+				content:content,
+				cancelText:'取消',
+				confirmText:'确定',
+				confirmColor:'#53679c',
+				success(res){
+					if (res.confirm) {
+						self.shareOrAV(prop,openType);
+					}else if(res.cancel){}
+				}
+			});
+		}catch(err){}
+		/*
 		if(this.failNode != null){
 			this.failNode.stopAllActions();
 			this.failNode.removeFromParent();
@@ -227,6 +246,7 @@ cc.Class({
 			}
 		}.bind(this),this);
 		this.failNode.runAction(cc.sequence(cc.fadeIn(0.5),cc.delayTime(1),cc.fadeOut(0.5),actionEnd));
+		*/
 	},
 	//再次进入游戏 数据重置
 	enterGame(){
@@ -283,7 +303,6 @@ cc.Class({
 			//动画速度 0.1s/100m
 			var time = (trickNodeSize.width/2 + 100)/GlobalData.GameRunTime.CurrentSpeed;
 			
-			
 			if(GlobalData.GameRunTime.CircleLevel % GlobalData.BallConfig.BallUpLevel == 0){
 				setTimeout(function(){
 					let UpLevelIsValid = new Array();
@@ -302,7 +321,8 @@ cc.Class({
 					}
 				},time);
 			}
-			if(GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel == 0){
+			var upFlag = GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel;
+			if(upFlag == 0 || GlobalData.GameRunTime.CircleLevel == 1){
 				//设置速度升级
 				GlobalData.GameRunTime.CurrentSpeed *= (1 + GlobalData.CupConfig.CupSpeedArate);
 				if(GlobalData.GameRunTime.CurrentSpeed >= GlobalData.CupConfig.CupMoveMSpeed){

@@ -71,9 +71,9 @@ cc.Class({
 			}
 			this.node.addChild(cupNode);
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				cupNode.setPosition(cc.v2(169,362));
+				cupNode.setPosition(cc.v2(169,331));
 			}else{
-				cupNode.setPosition(cc.v2(-169,362));
+				cupNode.setPosition(cc.v2(-169,331));
 			}
 			//console.log(cupNode.getPosition());
 			//var cupCom = cupNode.getComponent('AnimRigidCup');
@@ -170,8 +170,8 @@ cc.Class({
 		}
 		let CupNode = util.getRandomObjForArray(UpLevelIsValid);
 		if(CupNode != -1){
-			CupNode.scaleX *= (1 + GlobalData.CupConfig.CupSpeedArate);
-			CupNode.scaleY *= (1 + GlobalData.CupConfig.CupSpeedArate);
+			CupNode.scaleX *= (1 + GlobalData.CupConfig.CupBigRate);
+			CupNode.scaleY *= (1 + GlobalData.CupConfig.CupBigRate);
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 			GlobalData.GamePropParam.useNum['PropBig'] += 1;
 		}
@@ -190,9 +190,9 @@ cc.Class({
 			var cupCom = cupNode.getComponent('AnimRigidCup');
 			this.node.addChild(cupNode);
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				cupNode.setPosition(cc.v2(169,362));
+				cupNode.setPosition(cc.v2(169,331));
 			}else{
-				cupNode.setPosition(cc.v2(-169,362));
+				cupNode.setPosition(cc.v2(-169,331));
 			}
 			cupCom.initData(
 				trickSize.width,

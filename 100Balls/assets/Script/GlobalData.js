@@ -89,9 +89,10 @@ GlobalData = {
 		CupMoveSpeed:0.15,
 		CupMoveMSpeed:0.45,//杯子的最大旋转速度，超过之后要进行衰减
 		CupMoveASpeed:1.5,
-		CupSpeedArate:0.1,//每三轮速度增加率
+		CupSpeedArate:0.15,//每三轮速度增加率
+		CupBigRate:0.15,
 		CupMoveDir:'right',
-		CupUpLevel:3
+		CupUpLevel:2
 	},
 	BallConfig:{
 		BallColor:['Yellow','Green','Blue','Violet','Red'],
@@ -146,8 +147,8 @@ GlobalData = {
 			},
 			//升级概率参数设置
 			PropUpLevel:{
-				bagNum:1,
-				useNum:1
+				bagNum:3,
+				useNum:3
 			},
 			//加5球概率参数设置
 			PropAddBall:{
@@ -166,6 +167,6 @@ GlobalData = {
 			}
 		}
 	},
-	cdnShareImages:["res/raw-assets/d7/d79c420a-58c2-4663-87c0-3119e3f3fd94.d3b6b.png"],
+	cdnShareImages:["res/raw-assets/d7/d79c420a-58c2-4663-87c0-3119e3f3fd94.png"],
 	cdnTexts:["你介意男生玩这个游戏吗?"]
 };
