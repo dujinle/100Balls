@@ -68,7 +68,9 @@ let PropManager = {
 		return null;
 	},
 	getShareOrADKey(prop){
-		var propsRate = GlobalData.cdnPropParam.PropShareOrADRate[prop];
+		var shareOrAVS = GlobalData.cdnPropParam.PropShareOrADRate[GlobalData.cdnGameConfig.gameModel];
+		var shareOrAV = this.getParamByJuShu(shareOrAVS);
+		var propsRate = shareOrAV[prop];
 		var netProp = this.getRandomRateKey(propsRate);
 		return netProp;
 	},
@@ -87,7 +89,17 @@ let PropManager = {
 		return prop;
 	},
 	getPropBag(prop){
-		return GlobalData.cdnPropParam.PropParam[prop];
+		var res = this.getParamByJuShu(GlobalData.cdnPropParam.PropParam[prop]);
+		return res;
+	},
+	/*根据局数获取对应的参数 包括标记局*/
+	getParamByJuShu(data){
+		for(var key in data){
+			if(GlobalData.GameInfoConfig.juNum <= key){
+				return data[key];
+			}
+		}
+		return data['default'];
 	}
 };
 module.exports = PropManager;

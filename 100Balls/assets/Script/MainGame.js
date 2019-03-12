@@ -111,8 +111,6 @@ cc.Class({
 		//this.buttonNodes.active = false;
 		this.mainGameBoard.active = false;
 		this.startGameBoard.active = true;
-		
-		//this.pymanager.gravity = cc.v2(GlobalData.WorldConfig.gravity[0],GlobalData.WorldConfig.gravity[1]);
 		GlobalData.GameRunTime.BallNodesPool = new cc.NodePool();
 	},
 	//第一次进入游戏初始化数据
@@ -171,7 +169,6 @@ cc.Class({
 			};
 			this.shareFailedCb = function(type,arg){
 				if(this.iscallBack == false){
-					this.trickNode.getComponent('TrackManager').continueTrack();
 					this.showFailInfo(openType,prop);
 				}
 				this.iscallBack = true;
@@ -198,7 +195,6 @@ cc.Class({
 				});
 			}.bind(this);
 			this.AVFailedCb = function(arg){
-				this.trickNode.getComponent('TrackManager').continueTrack();
 				this.showFailInfo(openType,prop);
 			}.bind(this);
 			WxVideoAd.initCreateReward(this.AVSuccessCb,this.AVFailedCb,null);
@@ -220,7 +216,9 @@ cc.Class({
 				success(res){
 					if (res.confirm) {
 						self.shareOrAV(prop,openType);
-					}else if(res.cancel){}
+					}else if(res.cancel){
+						self.trickNode.getComponent('TrackManager').continueTrack();
+					}
 				}
 			});
 		}catch(err){}
@@ -413,7 +411,6 @@ cc.Class({
 		}
 		this.trickNode.getComponent('TrackManager').removeAllCups();
 		//this.rigidBallPool.clear();
-		//this.pymanager.gravity = cc.v2(GlobalData.WorldConfig.gravity[0],GlobalData.WorldConfig.gravity[1]);
 		//准备球儿数量
 		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallConfig.BallTotalNum;
 		GlobalData.GameRunTime.BallAbledNum = GlobalData.GameRunTime.BallUnFallNum;
