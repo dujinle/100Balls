@@ -27,45 +27,10 @@ let PropManager = {
 	},
 	getPropRelive(){
 		//如果没有解锁 不可用
-		//GlobalData.GamePropParam.bagNum.PropRelive += 1;
-		//return 'PropShare';
-		if(GlobalData.cdnPropParam.PropUnLock.PropRelive > GlobalData.GameInfoConfig.juNum){
-			console.log('getPropRelive unLock');
+		if(GlobalData.GameInfoConfig.PropRelive == 1){
 			return null;
 		}
-		//如果有道具了 就不获取了
-		if(GlobalData.GamePropParam.bagNum.PropRelive > 0 && GlobalData.GamePropParam.useNum.PropRelive == 0){
-			var prop = this.getShareOrADKey('PropRelive');
-			console.log("getPropRelive",prop);
-			return prop;
-		}
-		if(GlobalData.GamePropParam.useNum.PropRelive > 0){
-			console.log("getPropRelive use limit");
-			return null;
-		}
-		if(GlobalData.GamePropParam.bagNum.PropRelive == 0){
-			var random = Math.random();
-			console.log("getPropRelive",random);
-			if(random <= GlobalData.cdnPropParam.PropReliveRate){
-				GlobalData.GamePropParam.bagNum.PropRelive += 1;
-				return this.getShareOrADKey('PropRelive');
-			}else{
-				return null;
-			}
-		}
-	},
-	getPropStart(){
-		//如果没有解锁 不可用
-		//return 'PropShare';
-		if(GlobalData.cdnPropParam.PropUnLock.PropRelive > GlobalData.gameRunTimeParam.juNum){
-			return null;
-		}
-		//如果有道具了 就不获取了
-		if(GlobalData.GamePropParam.bagNum.PropRelive > 0 && GlobalData.GamePropParam.useNum.PropRelive == 0){
-			var prop = this.getShareOrADKey('PropRelive');
-			return prop;
-		}
-		return null;
+		return this.getShareOrADKey('PropRelive');
 	},
 	getShareOrADKey(prop){
 		var shareOrAVS = GlobalData.cdnPropParam.PropShareOrADRate[GlobalData.cdnGameConfig.gameModel];

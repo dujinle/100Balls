@@ -70,7 +70,7 @@ cc.Class({
 		var self = this;
 		//异步加载动态数据
 		this.rate = 0;
-		this.resLength = 10;
+		this.resLength = 13;
 		GlobalData.assets = {};
 		this.loadUpdate = function(){
 			console.log("this.rate:" + self.rate);
@@ -239,10 +239,22 @@ cc.Class({
 		console.log(data);
 		if(data.type == 'FallLine'){
 			GlobalData.GameRunTime.BallAbledNum -= 1;
-			if(GlobalData.GameRunTime.BallUnFallNum > 0){
-				this.fallOneBall();
+			GlobalData.GameRunTime.BallAppearNum -= 1;
+			if(GlobalData.GameRunTime.BallAbledNum == GlobalData.cdnGameConfig.PropRelive){
+				var openType = PropManager.getPropRelive();
+				if(openType != null){
+					this.trickNode.getComponent('TrackManager').stopTrack();
+					this.propReliveScene = cc.instantiate(GlobalData.assets['PropGameScene']);
+					this.mainGameBoard.addChild(this.propReliveScene);
+					this.propReliveScene.setPosition(cc.v2(0,0));
+					this.propReliveScene.getComponent('PropGame').initLoad(openType,'PropRelive');
+				}
+			}else{
+				if(GlobalData.GameRunTime.BallUnFallNum > 0){
+					this.fallOneBall();
+				}
+				this.finishGame();
 			}
-			this.finishGame();
 		}else if(data.type == 'CupRemove'){
 			this.trickNode.getComponent('TrackManager').removeCup(data.uuid);
 			GlobalData.GameRunTime.CupAbledNum -= 1;
@@ -358,6 +370,28 @@ cc.Class({
 				this.freshPropStatus();
 			}
 		}
+		else if(data.type == 'PropRelive'){
+			this.propReliveScene.removeFromParent();
+			this.propReliveScene.destroy();
+			this.trickNode.getComponent('TrackManager').continueTrack();
+			GlobalData.GameInfoConfig.PropRelive += 1;
+			GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropRelive;
+			GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropRelive;
+			if(GlobalData.GameRunTime.BallUnFallNum > 0){
+				this.fallOneBall();
+			}
+			for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
+				this.fallOneBall();
+			}
+			this.finishGame();
+		}
+		else if(data.type == 'PropCancle'){
+			this.trickNode.getComponent('TrackManager').continueTrack();
+			if(GlobalData.GameRunTime.BallUnFallNum > 0){
+				this.fallOneBall();
+			}
+			this.finishGame();
+		}
 	},
 	initFallBalls(){
 		var size = this.rigidBalls.getContentSize();
@@ -374,6 +408,7 @@ cc.Class({
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
+			GlobalData.GameRunTime.BallAppearNum += 1;
 			this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 			//console.log('add rigidBall',rigidBall.getPosition());
 		}
@@ -391,6 +426,7 @@ cc.Class({
 			rigidBall.getComponent('RigidBall').initAudio(this.audioManager);
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
+			GlobalData.GameRunTime.BallAppearNum += 1;
 			this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 			console.log('fallOneBall:',GlobalData.GameRunTime.BallNodesPool.size());
 		}
@@ -422,6 +458,8 @@ cc.Class({
 		GlobalData.GameRunTime.AudioPlayNum = 0;
 		GlobalData.GameRunTime.CupAbledNum = 0;
 		GlobalData.GameInfoConfig.addCupNum = 0;
+		GlobalData.GameRunTime.BallAppearNum = 0;
+		GlobalData.GameInfoConfig.PropRelive = 0;
 		this.scoreLabel.getComponent(cc.Label).string = 0;
 		this.levelLabel.getComponent(cc.Label).string = 0;
 	},
@@ -466,27 +504,50 @@ cc.Class({
 	freshPropStatus(){
 		var buttonBig = this.buttonNodes.getChildByName('buttonBig');
 		if(GlobalData.cdnPropParam.PropUnLock['PropBig'] <= GlobalData.GameInfoConfig.juNum){
-			var addNode = buttonBig.getChildByName("add");
-			buttonBig.active = true;
-			if(GlobalData.GamePropParam.useNum['PropBig'] < GlobalData.cdnPropParam.PropParam['PropBig'].useNum){
-				addNode.active = true;
+			var propBig = PropManager.getProp('PropBig');
+			if(propBig == null){
+				var numLabel = buttonBig.getChildByName("numLabel");
+				numLabel.active = true;
+				numLabel.getComponent(cc.Label).string = 'x0';
+				var openSprite = buttonBig.getChildByName("openSprite");
+				openSprite.active = false;
 			}else{
-				addNode.active = true;
-				addNode.color = new cc.Color(127, 127, 127);
+				var numLabel = buttonBig.getChildByName("numLabel");
+				numLabel.active = false;
+				var openSprite = buttonBig.getChildByName("openSprite");
+				if(propBig == 'PropShare'){
+					openSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['shareProp'];
+				}else if(propBig == 'PropAV'){
+					openSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['videoProp'];
+				}
+				openSprite.active = true;
 			}
+			buttonBig.active = true;
 		}else{
 			buttonBig.active = false;
 		}
+		
 		var buttonUpLevel = this.buttonNodes.getChildByName('buttonUpLevel');
 		if(GlobalData.cdnPropParam.PropUnLock['PropUpLevel'] <= GlobalData.GameInfoConfig.juNum){
-			var addNode = buttonUpLevel.getChildByName("add");
-			buttonUpLevel.active = true;
-			if(GlobalData.GamePropParam.bagNum['PropUpLevel'] < GlobalData.cdnPropParam.PropParam['PropUpLevel'].useNum){
-				addNode.active = true;
+			var propUpLevel = PropManager.getProp('PropUpLevel');
+			if(propUpLevel == null){
+				var numLabel = buttonUpLevel.getChildByName("numLabel");
+				numLabel.active = true;
+				numLabel.getComponent(cc.Label).string = 'x0';
+				var openSprite = buttonUpLevel.getChildByName("openSprite");
+				openSprite.active = false;
 			}else{
-				addNode.color = new cc.Color(127, 127, 127);
-				addNode.active = true;
+				var numLabel = buttonUpLevel.getChildByName("numLabel");
+				numLabel.active = false;
+				var openSprite = buttonUpLevel.getChildByName("openSprite");
+				if(propUpLevel == 'PropShare'){
+					openSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['shareProp'];
+				}else if(propUpLevel == 'PropAV'){
+					openSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['videoProp'];
+				}
+				openSprite.active = true;
 			}
+			buttonUpLevel.active = true;
 		}else{
 			buttonUpLevel.active = false;
 		}

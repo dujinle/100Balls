@@ -55,7 +55,7 @@ cc.Class({
 		}
 	},
 	syncSpeed(speed){
-		if(this.animState != null){
+		if(this.animState != null && this.isAbled == true){
 			if(this.rotateFlag != true){
 				console.log(this.node.uuid,'syncSpeed',speed);
 				this.animState.speed = speed;

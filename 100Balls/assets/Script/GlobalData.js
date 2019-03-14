@@ -16,7 +16,8 @@ GlobalData = {
 	},
 	//数字更新时间
 	TimeActionParam:{
-		PauseGameMoveTime:0.3		//暂停游戏界面的时间
+		PauseGameMoveTime:0.3,		//暂停游戏界面的时间
+		PropSBAScaleTime:0.3
 	},
 	RigidBodyTag:{
 		ball:0,
@@ -35,6 +36,7 @@ GlobalData = {
 		ContentBallsDic:{},
 		BallNodesPool:{},
 		CupNodesDic:{},
+		BallAppearNum:0,
 		AudioPlayNum:0,
 		BallUnFallNum:0,
 		CupAbledNum:0,
@@ -51,7 +53,7 @@ GlobalData = {
 		addCupNum:0,
 		shareTimes:0,
 		gameStatus:0,
-		linerDamp:0,
+		PropRelive:0,
 		juNum:0
 	},
 	CupConfig:{
@@ -107,6 +109,7 @@ GlobalData = {
 		minShareTime:2,
 		gameModel:'crazy',
 		shareSuccessWeight:[1,1,0.8,0.8,0.6],
+		PropRelive:20,
 		shareCustomSet:1		//0 关闭 自定义分享 1打开自定义分享
 	},
 	cdnPropParam:{	//道具自定义参数
@@ -146,6 +149,10 @@ GlobalData = {
 						PropAV:0
 					},
 					PropUpLevel:{
+						PropShare:1,
+						PropAV:0
+					},
+					PropRelive:{
 						PropShare:1,
 						PropAV:0
 					}
