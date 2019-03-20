@@ -116,6 +116,7 @@ cc.Class({
 			if(cupNode != null){
 				this.rigidCupPool.put(cupNode);
 				var cupCom = cupNode.getComponent('AnimRigidCup');
+				cupCom.removeBalls();
 				cupCom.resetStatus(true);
 			}
 		}
@@ -150,14 +151,15 @@ cc.Class({
 			let cupCom = CupNode.getComponent('AnimRigidCup');
 			if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
 				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
-				cupCom.setColor(cupCom.level + 1);
+				this.swapAction('PropUpLevel',CupNode);
+				//cupCom.setColor(cupCom.level + 1);
 				if(flag == false){
 					GlobalData.GamePropParam.useNum['PropUpLevel'] += 1;
 				}
 			}
 		}
 	},
-	bigOneCup(){
+	addSBACup(){
 		let UpLevelIsValid = new Array();
 		for(let key in GlobalData.GameRunTime.CupNodesDic){
 			let cup = GlobalData.GameRunTime.CupNodesDic[key];
@@ -170,10 +172,62 @@ cc.Class({
 		}
 		let CupNode = util.getRandomObjForArray(UpLevelIsValid);
 		if(CupNode != -1){
-			CupNode.scaleX *= (1 + GlobalData.CupConfig.CupBigRate);
-			CupNode.scaleY *= (1 + GlobalData.CupConfig.CupBigRate);
+			var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
+			CupNode.addChild(sbaNode);
+			sbaNode.setPosition(cc.v2(0,0));
+			CupNode.getComponent('AnimRigidCup').hasSBA = 1;
+			//this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
+			//GlobalData.GamePropParam.useNum['PropBig'] += 1;
+		}
+	},
+	bigOneCup(flag = false){
+		let UpLevelIsValid = new Array();
+		for(let key in GlobalData.GameRunTime.CupNodesDic){
+			let cup = GlobalData.GameRunTime.CupNodesDic[key];
+			if(cup != null && cup.isValid){
+				let cupCom = cup.getComponent('AnimRigidCup');
+				if(cupCom.UpLevelIsValid()){
+					UpLevelIsValid.push(cup);
+				}
+			}
+		}
+		let CupNode = util.getRandomObjForArray(UpLevelIsValid);
+		if(CupNode != -1){
+			this.swapAction('PropBig',CupNode);
+			//CupNode.scaleX *= (1 + GlobalData.CupConfig.CupBigRate);
+			//CupNode.scaleY *= (1 + GlobalData.CupConfig.CupBigRate);
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
-			GlobalData.GamePropParam.useNum['PropBig'] += 1;
+			if(flag == false){
+				GlobalData.GamePropParam.useNum['PropBig'] += 1;
+			}
+		}
+	},
+	swapAction(type,node){
+		if(type == 'PropBig'){
+			var scale = node.scale;
+			var bigScale = scale * (1 + GlobalData.CupConfig.CupBigRate);
+			node.runAction(cc.sequence(
+				cc.scaleTo(0.1,bigScale),
+				cc.scaleTo(0.1,scale),
+				cc.scaleTo(0.1,bigScale)
+			));
+		}else if(type == 'PropUpLevel'){
+			let cupCom = node.getComponent('AnimRigidCup');
+			var cupLevel = cupCom.level;
+			var setColorFunc = cc.callFunc(function(){
+				cupCom.setColor(cupLevel);
+			},this);
+			var setColorNextFunc = cc.callFunc(function(){
+				cupCom.setColor(cupLevel + 1);
+			},this);
+			node.runAction(cc.sequence(
+				cc.delayTime(0.1),
+				setColorNextFunc,
+				cc.delayTime(0.1),
+				setColorFunc,
+				cc.delayTime(0.1),
+				setColorNextFunc
+			));
 		}
 	},
 	eventFunc(data){

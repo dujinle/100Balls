@@ -14,6 +14,25 @@ let PropManager = {
 		var secondProp = this.getShareOrADKey(prop);
 		return secondProp;
 	},
+	getSBA(){
+		var prop = 'PropSAB';
+		//确定宝箱是否解锁
+		if(GlobalData.cdnPropParam.PropUnLock['PropSAB'] > GlobalData.GameInfoConfig.juNum){
+			//没有解锁 直接获取 刷新道具
+			return null;
+		}
+		prop = this.getShareOrADKey(prop);
+		//如果是分享则判断是否解锁
+		if(GlobalData.cdnPropParam.PropUnLock[prop] > GlobalData.GameInfoConfig.juNum){
+			return null;
+		}
+		var propsRate = GlobalData.cdnPropParam.SBAOpenRate;
+		var secondProp = this.getRandomRateKey(propsRate);
+		if(GlobalData.cdnPropParam.PropUnLock[secondProp] <= GlobalData.GameInfoConfig.juNum){
+			return prop + "_" + secondProp;
+		}
+		return null;
+	},
 	//return -1 不可再生 0 可再生 1 直接使用
 	checkPropAbled(prop){
 		var propBag = this.getPropBag(prop);

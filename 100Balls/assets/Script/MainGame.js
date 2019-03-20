@@ -3,6 +3,7 @@ var ThirdAPI = require('ThirdAPI');
 var PropManager = require('PropManager');
 var EventManager = require('EventManager');
 var WxVideoAd = require('WxVideoAd');
+var WxBannerAd = require('WxBannerAd');
 cc.Class({
     extends: cc.Component,
 
@@ -23,23 +24,6 @@ cc.Class({
     },
 
     onLoad () {
-		var self = this;
-		cc.eventManager.addListener({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            // 设置是否吞没事件，在 onTouchBegan 方法返回 true 时吞没
-            onTouchBegan: function (touch, event) {	
-				self.contentCL.getComponent('ContentCL').openContent();
-				GlobalData.GameInfoConfig.gameStatus = 1;
-                return true;
-            },
-            onTouchMoved: function (touch, event) {            // 触摸移动时触发
-            },
-            onTouchEnded: function (touch, event) {            // 点击事件结束处理
-				GlobalData.GameInfoConfig.gameStatus = 0;
-				self.contentCL.getComponent('ContentCL').closeContent();
-			}
-        }, this.node);
 		GlobalData.GameInfoConfig.juNum = 1;
 		ThirdAPI.loadLocalData();
 		this.loadDataSync();
@@ -70,7 +54,7 @@ cc.Class({
 		var self = this;
 		//异步加载动态数据
 		this.rate = 0;
-		this.resLength = 13;
+		this.resLength = 14;
 		GlobalData.assets = {};
 		this.loadUpdate = function(){
 			console.log("this.rate:" + self.rate);
@@ -125,6 +109,10 @@ cc.Class({
 		this.trickNode.getComponent('TrackManager').startTrack();
 		this.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameInfoConfig.gameStatus = 0;
+		this.setBannerAD();
+		this.node.on(cc.Node.EventType.TOUCH_START,this.openContent,this);
+		this.node.on(cc.Node.EventType.TOUCH_END,this.closeContent,this);
+		this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
 		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum,this.floorNode.active);
 	},
 	//所有面板的button按钮 返回函数
@@ -143,12 +131,18 @@ cc.Class({
 		}else if(customEventData == "C_Big"){
 			var propType = PropManager.getProp('PropBig');
 			if(propType != null){
+				if(GlobalData.GameInfoConfig.gameStatus == 1){
+					this.closeContent();
+				}
 				this.trickNode.getComponent('TrackManager').stopTrack();
 				this.shareOrAV('PropBig',propType);
 			}
 		}else if(customEventData == "C_UpLevel"){
 			var propType = PropManager.getProp('PropUpLevel');
 			if(propType != null){
+				if(GlobalData.GameInfoConfig.gameStatus == 1){
+					this.closeContent();
+				}
 				this.trickNode.getComponent('TrackManager').stopTrack();
 				this.shareOrAV('PropUpLevel',propType);
 			}
@@ -233,6 +227,18 @@ cc.Class({
 		this.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		ThirdAPI.updataGameInfo();
+		WxBannerAd.showBannerAd();
+		this.node.on(cc.Node.EventType.TOUCH_START,this.openContent,this);
+		this.node.on(cc.Node.EventType.TOUCH_END,this.closeContent,this);
+		this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
+	},
+	openContent(){
+		this.contentCL.getComponent('ContentCL').openContent();
+		GlobalData.GameInfoConfig.gameStatus = 1;
+	},
+	closeContent(){
+		GlobalData.GameInfoConfig.gameStatus = 0;
+		this.contentCL.getComponent('ContentCL').closeContent();
 	},
 	BallFallEvent(data){
 		var self = this;
@@ -244,10 +250,10 @@ cc.Class({
 				var openType = PropManager.getPropRelive();
 				if(openType != null){
 					this.trickNode.getComponent('TrackManager').stopTrack();
-					this.propReliveScene = cc.instantiate(GlobalData.assets['PropGameScene']);
-					this.mainGameBoard.addChild(this.propReliveScene);
-					this.propReliveScene.setPosition(cc.v2(0,0));
-					this.propReliveScene.getComponent('PropGame').initLoad(openType,'PropRelive');
+					this.propGameScene = cc.instantiate(GlobalData.assets['PropGameScene']);
+					this.mainGameBoard.addChild(this.propGameScene);
+					this.propGameScene.setPosition(cc.v2(0,0));
+					this.propGameScene.getComponent('PropGame').initLoad(openType,'PropRelive');
 				}
 			}else{
 				if(GlobalData.GameRunTime.BallUnFallNum > 0){
@@ -280,6 +286,26 @@ cc.Class({
 				GlobalData.GameInfoConfig.maxLevel = GlobalData.GameRunTime.CircleLevel;
 				ThirdAPI.updataGameInfo();
 			}
+		}
+		else if(data.type == 'OpenSBA'){
+			if(GlobalData.GameInfoConfig.gameStatus == 1){
+				this.closeContent();
+			}
+			var propSba = PropManager.getSBA();
+			if(propSba != null){
+				var split = propSba.split('_');
+				if(split.length == 2){
+					this.trickNode.getComponent('TrackManager').stopTrack();
+					this.propGameScene = cc.instantiate(GlobalData.assets['PropGameScene']);
+					this.mainGameBoard.addChild(this.propGameScene);
+					this.propGameScene.setPosition(cc.v2(0,0));
+					this.propGameScene.getComponent('PropGame').initLoad(split[0],split[1]);
+				}
+			}
+			var cupNode = GlobalData.GameRunTime.CupNodesDic[data.uuid];
+			var sbaNode = cupNode.getChildByName('PropSBA');
+			sbaNode.removeFromParent();
+			sbaNode.destroy();
 		}
 		else if(data.type == 'UpdateCircle'){
 			this.levelLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.CircleLevel;
@@ -319,9 +345,15 @@ cc.Class({
 					self.trickNode.getComponent('TrackManager').upLevelCup(true);
 				},time);
 			}
+			var sbaFlag = GlobalData.GameRunTime.CircleLevel % GlobalData.cdnGameConfig.PropSBAFlag;
+			if(sbaFlag == 0){
+				setTimeout(function(){
+					self.trickNode.getComponent('TrackManager').addSBACup();
+				},time);
+			}
 		}
 		else if(data.type == 'RankView'){
-			//WxBannerAd.hideBannerAd();
+			WxBannerAd.hideBannerAd();
 			if(this.finishGameScene != null){
 				this.finishGameScene.getComponent("FinishGame").isDraw = false;
 			}
@@ -370,20 +402,63 @@ cc.Class({
 				this.freshPropStatus();
 			}
 		}
-		else if(data.type == 'PropRelive'){
-			this.propReliveScene.removeFromParent();
-			this.propReliveScene.destroy();
-			this.trickNode.getComponent('TrackManager').continueTrack();
-			GlobalData.GameInfoConfig.PropRelive += 1;
-			GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropRelive;
-			GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropRelive;
-			if(GlobalData.GameRunTime.BallUnFallNum > 0){
-				this.fallOneBall();
+		else if(data.type == 'PropSuccess'){
+			this.propGameScene.removeFromParent();
+			this.propGameScene.destroy();
+			
+			if(data.prop == 'PropRelive'){
+				GlobalData.GameInfoConfig.PropRelive += 1;
+				var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
+				this.mainGameBoard.addChild(sbaNode);
+				sbaNode.setPosition(cc.v2(0,0));
+				var finishFunc = cc.callFunc(function(){
+					sbaNode.removeFromParent();
+					sbaNode.destroy();
+				},this);
+				let pos = this.cupContent.getPosition();
+				sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),finishFunc));
+				setTimeout(function(){
+					GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+					GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+					self.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
+					if(GlobalData.GameRunTime.BallUnFallNum > 0){
+						self.fallOneBall();
+					}
+					for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
+						self.fallOneBall();
+					}
+					self.finishGame();
+					self.trickNode.getComponent('TrackManager').continueTrack();
+				},1200);
+			}else if(data.prop == 'PropBig'){
+				this.trickNode.getComponent('TrackManager').continueTrack();
+				this.trickNode.getComponent('TrackManager').bigOneCup(true);
+			}else if(data.prop == 'PropUpLevel'){
+				this.trickNode.getComponent('TrackManager').continueTrack();
+				this.trickNode.getComponent('TrackManager').upLevelCup(true);
+			}else if(data.prop == 'PropAddBall'){
+				var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
+				this.mainGameBoard.addChild(sbaNode);
+				sbaNode.setPosition(cc.v2(0,0));
+				var finishFunc = cc.callFunc(function(){
+					sbaNode.removeFromParent();
+					sbaNode.destroy();
+				},this);
+				let pos = this.cupContent.getPosition();
+				sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),cc.fadeOut(),finishFunc));
+				setTimeout(function(){
+					GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+					GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+					self.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
+					if(GlobalData.GameRunTime.BallUnFallNum > 0){
+						self.fallOneBall();
+					}
+					for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
+						self.fallOneBall();
+					}
+					self.trickNode.getComponent('TrackManager').continueTrack();
+				},1200);
 			}
-			for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
-				this.fallOneBall();
-			}
-			this.finishGame();
 		}
 		else if(data.type == 'PropCancle'){
 			this.trickNode.getComponent('TrackManager').continueTrack();
@@ -436,6 +511,7 @@ cc.Class({
 		this.clearGame();
 		GlobalData.GameRunTime.BallNodesPool.clear();
 		this.trickNode.getComponent('TrackManager').rigidCupPool.clear();
+		WxBannerAd.hideBannerAd();
 	},
 	clearGame(){
 		//清除球体
@@ -462,10 +538,13 @@ cc.Class({
 		GlobalData.GameInfoConfig.PropRelive = 0;
 		this.scoreLabel.getComponent(cc.Label).string = 0;
 		this.levelLabel.getComponent(cc.Label).string = 0;
+		this.node.off(cc.Node.EventType.TOUCH_START,this.openContent,this);
+		this.node.off(cc.Node.EventType.TOUCH_END,this.closeContent,this);
+		this.node.off(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
 	},
 	finishGame(){
 		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
-		if(GlobalData.GameRunTime.CupAbledNum <= 0 || GlobalData.GameRunTime.BallAbledNum <= 0){
+		if(GlobalData.GameRunTime.CupAbledNum <= 1 || GlobalData.GameRunTime.BallAbledNum <= 0){
 			this.trickNode.getComponent('TrackManager').stopTrack();
 			this.audioManager.getComponent('AudioManager').stopGameBg();
 			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
@@ -473,7 +552,6 @@ cc.Class({
 				scene:'FinishGameScene',
 				type:null
 			});
-			
 		}
 	},
 	showPBGameScene(data){
@@ -552,5 +630,16 @@ cc.Class({
 			buttonUpLevel.active = false;
 		}
 	},
-    // update (dt) {},
+    setBannerAD(){
+	//添加广告计算 最下面的节点位置所占的全屏比例 广告位置 不得超过这个节点
+		if(GlobalData.cdnPropParam.PropUnLock['PropAD'] <= GlobalData.GameInfoConfig.juNum){
+			var sizeHeight = cc.winSize.height;
+			var floorPos = this.floorNode.getPosition();
+			var floorSize = this.floorNode.getContentSize();
+			//向下移 10个像素 不要挨得最下面的节点太近
+			var yy = Math.abs(floorPos.y) +  floorSize.height/2 + sizeHeight/2;
+			var yRate = 1 - yy/sizeHeight;
+			WxBannerAd.createBannerAd(yRate);
+		}
+	}
 });

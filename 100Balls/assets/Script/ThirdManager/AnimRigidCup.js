@@ -18,6 +18,7 @@ cc.Class({
 		color:null,
 		innerNode:cc.Node,
 		isAbled:true,
+		hasSBA:0,
 		audioManager:null,
     },
     onLoad () {
@@ -32,6 +33,7 @@ cc.Class({
 		this.repairSpeedFlag = false;
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
+		this.hasSBA = 0;
 		this.setColor(this.level);
 		this.rigidBody = this.node.getComponent(cc.RigidBody);
 		this.rigidBody.type = cc.RigidBodyType.Static;
@@ -93,7 +95,7 @@ cc.Class({
 			this.animState.wrapMode = cc.WrapMode.Loop;
 			this.animState.speed = this.addSpeed;
 		}
-		this.schedule(this.checkAddCup,0.02);
+		this.schedule(this.checkAddCup,0);
 	},
 	checkAddCup(dt){
 		//是否加杯子
@@ -110,6 +112,7 @@ cc.Class({
 	},
 	resetStatus(flag){
 		this.ballNum = 0;
+		this.hasSBA = 0;
 		this.isAbled = true;
 		this.rotateFlag = false;
 		this.repairSpeedFlag = false;
@@ -120,6 +123,11 @@ cc.Class({
 			this.rigidBody.gravityScale = 0;
 			this.setColor(0);
 			this.node.rotation = 0;
+		}
+		var sbaNode = this.node.getChildByName('PropSBA');
+		if(sbaNode != null){
+			sbaNode.removeFromParent();
+			sbaNode.destroy();
 		}
 	},
 	initData(width,height,deep,speed,addSpeed,audioManager){
@@ -133,6 +141,11 @@ cc.Class({
 		if(this.rigidBody == null){
 			this.rigidBody = this.node.getComponent(cc.RigidBody);
 		}
+		if(this.animState != null){
+			this.animState.stop();
+		}
+		//var label = this.node.addComponent(cc.Label);
+		//label.string = this.myId;
 	},
 	UpLevelIsValid(){
 		if(this.ballNum > 0){
@@ -156,6 +169,16 @@ cc.Class({
 		this.cupScoreNumDic = {};
 		this.balls = {};
 		this.resetStatus(false);
+	},
+	removeBalls(){
+		this.cupScoreDic = {};
+		this.cupScoreNumDic = {};
+		for(var key in this.balls){
+			var ball = this.balls[key];
+			ball.getComponent('RigidBall').fallReset(true);
+			GlobalData.GameRunTime.BallNodesPool.put(ball);
+		}
+		this.balls = {};
 	},
 	setCupLineClose(flag){
 		var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
@@ -265,6 +288,13 @@ cc.Class({
 		if(this.level > ballCom.level){
 			ballCom.setColor(this.level);
 		}
+		if(this.hasSBA == 1){
+			EventManager.emit({
+				type:'OpenSBA',
+				uuid:this.node.uuid
+			});
+			this.hasSBA = 0;
+		}
 		ballCom.isInCup = true;
 		var size = this.node.getContentSize();
 		if(this.cupScoreDic[ballCom.color] == null){
@@ -306,11 +336,21 @@ cc.Class({
 	updateCircleNum(){
 		this.circleNum += 1;
 		if(this.circleNum > GlobalData.GameRunTime.CircleLevel){
-			GlobalData.GameRunTime.CircleLevel += 1;
-			EventManager.emit({
-				type:'UpdateCircle',
-				uuid:this.node.uuid
-			});
+			var Uid = GlobalData.GameRunTime.CircleLevel % GlobalData.GameRunTime.CupAbledNum;
+			for(var key in GlobalData.GameRunTime.CupNodesDic){
+				var node = GlobalData.GameRunTime.CupNodesDic[key];
+				if(Uid == 0){
+					if(this.node.uuid == node.uuid){
+						GlobalData.GameRunTime.CircleLevel += 1;
+						EventManager.emit({
+							type:'UpdateCircle',
+							uuid:this.node.uuid
+						});
+					}
+					break;
+				}
+				Uid = Uid - 1;
+			}
 		}
 	},
 	cupRemove(){

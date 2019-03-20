@@ -7,6 +7,7 @@ cc.Class({
     properties: {
 		propKey:null,
 		openType:null,
+		contentLabel:cc.Label,
 		cancelNode:cc.Node,
 		bgContext:cc.Node,
 		typeSprite:cc.Node,
@@ -25,12 +26,18 @@ cc.Class({
 		}else if(this.openType == 'PropAV'){
 			this.typeSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['video'];
 		}
+		if(this.propKey == 'PropRelive'){
+			this.contentLabel.getComponent(cc.Label).string = '只剩20个球球，要增加10个继续游戏吗？';
+		}else{
+			this.contentLabel.getComponent(cc.Label).string = '恭喜获得免费礼包快来领取吧';
+		}
 		this.bgContext.runAction(cc.scaleTo(GlobalData.TimeActionParam.PropSBAScaleTime,1));
 		setTimeout(function(){
 			self.cancelNode.active = true;
 		},1000);
 	},
 	buttonCb(){
+		var propKey = this.propKey;
 		this.iscallBack = false;
 		if(this.openType == "PropShare"){
 			var param = {
@@ -49,7 +56,8 @@ cc.Class({
 			console.log(this.openType);
 			this.AVSuccessCb = function(arg){
 				EventManager.emit({
-					type:'PropRelive'
+					type:'PropSuccess',
+					prop:propKey
 				});
 				this.node.dispatchEvent(this.EventCustom);
 			}.bind(this);
@@ -65,10 +73,12 @@ cc.Class({
 		}
 	},
 	shareSuccessCb(type, shareTicket, arg){
+		var propKey = this.propKey;
 		if(this.iscallBack == false){
 			console.log(type, shareTicket, arg);
 			EventManager.emit({
-				type:'PropRelive'
+				type:'PropSuccess',
+				prop:propKey
 			});
 		}
 		this.iscallBack = true;

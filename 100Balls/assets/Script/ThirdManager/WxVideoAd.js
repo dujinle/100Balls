@@ -12,7 +12,7 @@ let WxVideoAd = {
 
             try {
                 let videoAd = wx.createRewardedVideoAd({
-                    adUnitId: 'adunit-317a6f77277bb1b1'
+                    adUnitId: 'adunit-60f283bb292eb9f8'
                 })
 
                 videoAd.load()

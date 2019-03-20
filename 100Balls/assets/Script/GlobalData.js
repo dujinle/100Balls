@@ -1,6 +1,6 @@
 GlobalData = {
 	cdnWebsite: "https://alicdn.zhituokeji.com/",
-	cdnFileDefaultPath:"minigame/jointdevelopment/100balls/cdnBallsParam2.0.json",
+	cdnFileDefaultPath:"minigame/jointdevelopment/100balls/cdnBallsParam1.0.2.json",
 	AudioManager:{
 		ButtonClick:0,
 		//Ball中的音乐
@@ -67,7 +67,7 @@ GlobalData = {
 		},
 		CupCreatNum:6,
 		CupMoveSpeed:0.15,
-		CupMoveMSpeed:0.45,//杯子的最大旋转速度，超过之后要进行衰减
+		CupMoveMSpeed:0.5,//杯子的最大旋转速度，超过之后要进行衰减
 		CupMoveASpeed:1.5,
 		CupSpeedArate:0.15,//每三轮速度增加率
 		CupBigRate:0.15,
@@ -109,13 +109,24 @@ GlobalData = {
 		minShareTime:2,
 		gameModel:'crazy',
 		shareSuccessWeight:[1,1,0.8,0.8,0.6],
-		PropRelive:20,
+		PropRelive:20,//剩余20个小球是
+		PropSBAFlag:4,
+		PropAddNum:10,
 		shareCustomSet:1		//0 关闭 自定义分享 1打开自定义分享
 	},
 	cdnPropParam:{	//道具自定义参数
 		PropUnLock:{	//道具解锁盘数
 			PropBig:1,
 			PropUpLevel:1,
+			PropAddBall:1,
+			PropAD:1,
+			PropShare:1,
+			PropAV:1,
+			PropSBA:1
+		},
+		SBAOpenRate:{
+			PropBig:0,
+			PropUpLevel:0,
 			PropAddBall:1
 		},
 		PropParam:{
@@ -153,6 +164,14 @@ GlobalData = {
 						PropAV:0
 					},
 					PropRelive:{
+						PropShare:1,
+						PropAV:0
+					},
+					PropAddBall:{
+						PropShare:1,
+						PropAV:0
+					},
+					PropSAB:{
 						PropShare:1,
 						PropAV:0
 					}
