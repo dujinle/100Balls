@@ -87,11 +87,11 @@ cc.Class({
 		GlobalData.GameInfoConfig.addCupNum += 1;
 		this.rigidBody.type = cc.RigidBodyType.Animated;
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
-			this.animState = this.anim.play('cupRightAnimationV');
+			this.animState = this.anim.play('cupRightAnimationV',0);
 			this.animState.wrapMode = cc.WrapMode.Loop;
 			this.animState.speed = this.addSpeed;
 		}else{
-			this.animState= this.anim.play('cupLeftAnimation');
+			this.animState= this.anim.play('cupLeftAnimation',0);
 			this.animState.wrapMode = cc.WrapMode.Loop;
 			this.animState.speed = this.addSpeed;
 		}
@@ -136,6 +136,7 @@ cc.Class({
 		this.width = width;
 		this.speed = speed;
 		this.height = height;
+		this.node.rotation = 0;
 		this.addSpeed = addSpeed;
 		this.audioManager = audioManager;
 		if(this.rigidBody == null){
@@ -143,6 +144,7 @@ cc.Class({
 		}
 		if(this.animState != null){
 			this.animState.stop();
+			this.anim.setCurrentTime(0);
 		}
 		//var label = this.node.addComponent(cc.Label);
 		//label.string = this.myId;
@@ -352,18 +354,5 @@ cc.Class({
 				Uid = Uid - 1;
 			}
 		}
-	},
-	cupRemove(){
-		var destroyFunc = cc.callFunc(function(){
-			EventManager.emit({
-				type:'CupRemove',
-				uuid:this.node.uuid
-			})
-		},this);
-		if(GlobalData.CupConfig.CupMoveDir == 'left'){
-			this.node.runAction(cc.sequence(cc.rotateBy(0.2,30),destroyFunc));
-		}else{
-			this.node.runAction(cc.sequence(cc.rotateBy(0.2,-30),destroyFunc));
-		}
-	},
+	}
 });

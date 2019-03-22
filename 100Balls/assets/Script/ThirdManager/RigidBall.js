@@ -22,6 +22,8 @@ cc.Class({
 		}
 		this.rigidBody.gravityScale = GlobalData.BallConfig.BallGravityScale;
 		this.rigidBody.type = cc.RigidBodyType.Dynamic;
+		this.rigidBody.fixedRotation = false;
+		this.rigidBody.angularDamping = 10;
 	},
 	setRigidBodyType(type){
 		if(this.rigidBody != null){
