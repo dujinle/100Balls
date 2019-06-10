@@ -34,6 +34,20 @@ let util = {
 		}
 		return length;
 	},
+	getRandomArray:function(length){
+		var res = new Array();
+		var dst = new Array();
+		for(var i = 0;i < length;i++){
+			res.push(i);
+		}
+		for(var i = length;i > 0;i--){
+			var idx = Math.floor(Math.random() * i);
+			dst.push(res[idx]);
+			res.splice(idx,1);
+		}
+		console.log('getRandomArray',dst);
+		return dst;
+	},
 	//节点距离计算欧式公式
 	euclDist:function(pos1,pos2){
 		var a = pos1.x - pos2.x;

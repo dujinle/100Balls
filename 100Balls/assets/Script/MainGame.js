@@ -91,7 +91,10 @@ cc.Class({
 		this.schedule(this.loadUpdate,0.5);
 	},
 	start(){
-		ThirdAPI.loadCDNData(null);
+		var self = this;
+		ThirdAPI.loadCDNData(function(){
+			self.startGameBoard.getComponent("StartGame").refreshGame();
+		});
 		//this.buttonNodes.active = false;
 		this.mainGameBoard.active = false;
 		this.startGameBoard.active = true;

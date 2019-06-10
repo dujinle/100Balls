@@ -26,16 +26,30 @@ let ThirdAPI = {
 		}
     },
     loadCDNData:function(callback){
-		var url = GlobalData.cdnWebsite + GlobalData.cdnFileDefaultPath;
-		util.httpGET(url,null,function(code,data){
-			if(code == 200){
-				util.updateObj(GlobalData,data,GlobalData.cdnCopyKeys);
-				console.log(GlobalData);
-				if(callback){
-                    callback();
-                }
-			}
-		});
+		try{
+			wx.cloud.init({ env:'my100balls-fce632'});
+			const db = wx.cloud.database()
+			db.collection('100balls').where({
+				FileName:GlobalData.cdnFileDefaultPath
+			}).get({
+				success(res) {
+					// res.data 包含该记录的数据
+					console.log(res.data);
+					if(res.data.length > 0){
+						var data = res.data[0];
+						util.updateObj(GlobalData,data,GlobalData.cdnCopyKeys);
+						if(callback){
+							callback();
+						}
+					}
+				},
+				fail(err){
+				  console.log(err);
+				}
+			});
+		}catch(err){
+			console.log(err);
+		}
 	},
 	//更新游戏云端数据
     updataGameInfo: function () {

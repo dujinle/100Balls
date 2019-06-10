@@ -10,6 +10,8 @@ cc.Class({
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
 		audioManager:null,
+		innerChain:cc.Node,
+		oneInner:cc.Node,
     },
     onLoad () {
 	},
@@ -23,6 +25,37 @@ cc.Class({
 		}
 		this.scoreLabel.getComponent(cc.Label).string = GlobalData.GameInfoConfig.maxScore;
 		this.levelLabel.getComponent(cc.Label).string = 'Level ' + GlobalData.GameInfoConfig.maxLevel;
+		this.initInnerChain(0);
+	},
+	refreshGame(){
+		this.initInnerChain(0);
+		/*
+		if(GlobalData.gameRunTimeParam.juNum >= GlobalData.cdnPropParam.PropUnLock['PropBattle']){
+			this.battleButton.active = true;
+		}else{
+			this.battleButton.active = false;
+		}
+		if(GlobalData.gameRunTimeParam.juNum >= GlobalData.cdnPropParam.PropUnLock['StartMenu']){
+			this.buttonLayout.active = true;
+		}else{
+			this.buttonLayout.active = false;
+		}
+		*/
+	},
+	initInnerChain(time){
+		var self = this;
+		this.innerChain.active = false;
+		if(GlobalData.cdnPropParam.PropUnLock['PropLocker'] <= GlobalData.GameInfoConfig.juNum){
+			this.innerChain.getComponent('ScrollLinkGame').createAllLinkGame(GlobalData.cdnOtherGameDoor.locker);
+			this.node.runAction(cc.sequence(cc.delayTime(time),cc.callFunc(function(){
+				self.innerChain.active = true;
+			})));
+		}
+		this.oneInner.active = false;
+		if(GlobalData.cdnPropParam.PropUnLock['PropInner'] <= GlobalData.GameInfoConfig.juNum){
+			this.oneInner.active = true;
+			this.oneInner.getComponent('LockerItem').setLinkGame(GlobalData.cdnOtherGameDoor.InnerChain);
+		}
 	},
 	startButtonCb(event){
 		if(this.audioManager != null){

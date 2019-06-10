@@ -5,6 +5,7 @@ cc.Class({
     properties: {
 		gotoHomeButton:cc.Node,
 		returnGame:cc.Node,
+		innerChain:cc.Node,
     },
 
     onLoad () {
@@ -26,6 +27,17 @@ cc.Class({
 		this.returnGame.runAction(returnGameScale);
 		var gotoHomeScale = cc.scaleTo(GlobalData.TimeActionParam.PauseGameMoveTime,1);
 		this.gotoHomeButton.runAction(gotoHomeScale);
+		this.initInnerChain(0);
+	},
+	initInnerChain(time){
+		var self = this;
+		this.innerChain.active = false;
+		if(GlobalData.cdnPropParam.PropUnLock['PropLocker'] <= GlobalData.GameInfoConfig.juNum){
+			this.innerChain.getComponent('ScrollLinkGame').createAllLinkGame(GlobalData.cdnOtherGameDoor.locker);
+			this.node.runAction(cc.sequence(cc.delayTime(time),cc.callFunc(function(){
+				self.innerChain.active = true;
+			})));
+		}
 	},
 	hidePause(callBack = null){
 		var self = this;

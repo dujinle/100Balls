@@ -1,6 +1,6 @@
 GlobalData = {
 	cdnWebsite: "https://alicdn.zhituokeji.com/",
-	cdnFileDefaultPath:"minigame/jointdevelopment/100balls/cdnBallsParam1.0.2.json",
+	cdnFileDefaultPath:"cdnBallsParam1.0.2",
 	AudioManager:{
 		ButtonClick:0,
 		//Ball中的音乐
@@ -114,6 +114,79 @@ GlobalData = {
 		PropAddNum:10,
 		shareCustomSet:1		//0 关闭 自定义分享 1打开自定义分享
 	},
+	cdnOtherGameDoor:{
+		locker:[
+			{
+				hideRate:0.5,
+				hotFlag:1,
+				name:"2048六角正版",
+				appid:"wxc796e8cabc773566",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_sixAngle.png"
+			},
+			{
+				hideRate:0.5,
+				hotFlag:0,
+				name:"绝地求升",
+				appid:"wx2bc7cdb0119bb86b",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_snow.png",
+				spriteFrameSpeed:1,
+				linkSpriteFrames: [
+					"https://alicdn.zhituokeji.com/minigame/spriteFrames/airCar/01.png",
+					"https://alicdn.zhituokeji.com/minigame/spriteFrames/airCar/02.png",
+					"https://alicdn.zhituokeji.com/minigame/spriteFrames/airCar/03.png",
+					"https://alicdn.zhituokeji.com/minigame/spriteFrames/airCar/04.png"
+				]
+			},
+			{
+				hideRate:0.5,
+				hotFlag:1,
+				name:"无尽钓鱼",
+				appid:"wx52f8dec006405bf6",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_fishmaster.png"
+			},
+			{
+				hideRate:0.5,
+				hotFlag:0,
+				name:"俄罗斯2048",
+				appid:"wx6838d3562692630c",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_2048clear.png"
+			},
+			{
+				hideRate:0.5,
+				hotFlag:0,
+				name:"六角数字三消 ",
+				appid:"wx9f92ce5369e9ea6c",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_threeClear.png"
+			},
+			{
+				hideRate:0.5,
+				hotFlag:0,
+				name:"创意拼图",
+				appid:"wxf7d561f6e80365e7",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_jigsaw.png"
+			},
+			{
+				hideRate:0.5,
+				hotFlag:0,
+				name:"绝地求升",
+				appid:"wx2bc7cdb0119bb86b",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_snow.png"
+			},
+			{
+				hideRate:0.5,
+				hotFlag:0,
+				name:"无尽钓鱼",
+				appid:"wx52f8dec006405bf6",
+				logo:"https://alicdn.zhituokeji.com/minigame/scrollLinkGameImage/icon_fishmaster.png"
+			}
+		],
+		InnerChain:{
+			hotFlag:0,
+			name:"2048六角正版",
+			appid:"wxc796e8cabc773566",
+			logo:"https://alicdn.zhituokeji.com/minigame/2048Config/linkImages/linkSixAngle.png"
+		}
+	},
 	cdnPropParam:{	//道具自定义参数
 		PropUnLock:{	//道具解锁盘数
 			PropBig:1,
@@ -122,6 +195,8 @@ GlobalData = {
 			PropAD:1,
 			PropShare:1,
 			PropAV:1,
+			PropInner:1,
+			PropLocker:1,
 			PropSBA:1
 		},
 		SBAOpenRate:{

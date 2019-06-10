@@ -6,6 +6,7 @@ cc.Class({
     properties: {
 		rankSprite:cc.Node,
 		isDraw:false,
+		innerChain:cc.Node,
     },
     onLoad () {
 		console.log("finish game board load");
@@ -19,6 +20,7 @@ cc.Class({
 	},
 	show(){
 		console.log("finish game show");
+		this.initInnerChain(0);
 		if(typeof wx != 'undefined'){
 			this.isDraw = true;
 			//this.node.active = true;
@@ -26,6 +28,16 @@ cc.Class({
 				type:'gameOverUIRank'
 			};
 			ThirdAPI.getRank(param);
+		}
+	},
+	initInnerChain(time){
+		var self = this;
+		this.innerChain.active = false;
+		if(GlobalData.cdnPropParam.PropUnLock['PropLocker'] <= GlobalData.GameInfoConfig.juNum){
+			this.innerChain.getComponent('ScrollLinkGame').createAllLinkGame(GlobalData.cdnOtherGameDoor.locker);
+			this.node.runAction(cc.sequence(cc.delayTime(time),cc.callFunc(function(){
+				self.innerChain.active = true;
+			})));
 		}
 	},
 	hide(){
