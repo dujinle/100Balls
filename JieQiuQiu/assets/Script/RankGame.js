@@ -7,6 +7,9 @@ cc.Class({
 		isDraw:false,
     },
     onLoad () {
+		this.node.on(cc.Node.EventType.TOUCH_START,function(e){
+			e.stopPropagation();
+		});
 		console.log("finish game board load");
 	},
 	start(){
@@ -17,8 +20,7 @@ cc.Class({
 		}catch(error){}
 	},
 	onClose(){
-		this.node.removeFromParent();
-		this.node.destroy();
+		this.hide();
 	},
 	show(type){
 		console.log("finish game show");

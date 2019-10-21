@@ -7,6 +7,7 @@ cc.Class({
 		isInCup:false,
 		isAbled:true,
 		fallLine:false,
+		innerNode:cc.Node,
 		touchCupMusic:false,
 		touchFloorMusic:false,
     },
@@ -16,9 +17,6 @@ cc.Class({
 		if(this.rigidBody == null){
 			this.rigidBody = this.node.getComponent(cc.RigidBody);
 		}
-		//this.rigidBody.gravityScale = GlobalData.BallConfig.BallGravityScale;
-		//this.rigidBody.type = cc.RigidBodyType.Static;
-		//this.rigidBody.fixedRotation = false;
 	},
 	setRigidBodyType(type){
 		if(this.rigidBody != null){
@@ -26,14 +24,9 @@ cc.Class({
 		}
 	},
 	swapParent(pnode,time){
-		this.node.removeFromParent();
 		this.scheduleOnce(function(){
-			var pPos = pnode.getPosition();
-			var pos = this.node.getPosition();
-			this.rigidBody.enabled = false;
-			pnode.addChild(this.node);
-			this.node.setPosition(cc.v2(pos.x - pPos.x,pos.y - pPos.y));
-			
+			this.rigidBody.type = cc.RigidBodyType.Static;
+			this.node.parent = pnode;
 		}.bind(this),time);
 	},
 	delayToStatic(flag,time){
@@ -63,6 +56,8 @@ cc.Class({
 	setColor(level){
 		this.level = level;
 		this.color = GlobalData.BallConfig.BallColor[level];
+		var colorMat = GlobalData.BallConfig.BallColorDic[this.color];
+		this.innerNode.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
 	setRigidDamp(num){
 		console.log(this.node.uuid,'setRigidDamp',num);

@@ -36,7 +36,9 @@ GlobalData = {
 	GameRunTime:{
 		ContentBallsDic:{},
 		BallNodesPool:null,
+		BaseBallPool:null,
 		CupNodesPool:null,
+		UpScorePool:null,
 		CupNodesDic:{},
 		BallAppearNum:0,
 		AudioPlayNum:0,
@@ -49,7 +51,6 @@ GlobalData = {
 	},
 	GameInfoConfig:{
 		audioSupport:1,
-		ballTouchBottom:0,
 		maxScore:0,
 		maxLevel:0,
 		addCupNum:0,
@@ -67,7 +68,7 @@ GlobalData = {
 			Violet:[208,61,234],
 			Red:[245,27,68]
 		},
-		CupDist:[0,331,662,993,1324,1655],
+		BallInCupPos:[[0,-39],[22,-36],[-22,-36],[24,-14],[2,-17],[-20,-14],[26,8],[3,6],[-20,8],[29,30],[6,28],[-16,30]],
 		CupCreatNum:6,
 		CupMoveSpeed:0.15,
 		CupMoveMSpeed:0.5,//杯子的最大旋转速度，超过之后要进行衰减

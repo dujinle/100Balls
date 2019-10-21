@@ -27,13 +27,6 @@ let util = {
 		var random = Math.floor(Math.random()*array.length);
 		return random;
 	},
-	getDicLength:function(dict){
-		var length = 0;
-		for(let key in dict){
-			length += 1;
-		}
-		return length;
-	},
 	getRandomArray:function(length){
 		var res = new Array();
 		var dst = new Array();
@@ -48,12 +41,21 @@ let util = {
 		console.log('getRandomArray',dst);
 		return dst;
 	},
-	//节点距离计算欧式公式
-	euclDist:function(pos1,pos2){
-		var a = pos1.x - pos2.x;
-		var b = pos1.y - pos2.y;
-		var dist = Math.sqrt(a * a + b * b);
-		return dist;
+	//计算n1节点相对于n2节点来说的瞄点坐标
+	getPosFromNode:function(n1,n2){
+		var pos = cc.v2(0,0);
+		if(n1 == null || n2 == null){
+			return pos;
+		}
+		while(n1.parent != null){
+			if(n1.parent.uuid == n2.uuid){
+				break;
+			}
+			pos.x = n1.x + n1.parent.x;
+			pos.y = n1.y + n1.parent.y;
+			n1 = n1.parent;
+		}
+		return pos;
 	},
 	//获取随机数
 	getRandomNum:function(rateType){

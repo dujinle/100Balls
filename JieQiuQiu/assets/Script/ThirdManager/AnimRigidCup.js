@@ -1,3 +1,5 @@
+var ThirdAPI = require('ThirdAPI');
+var PropManager = require('PropManager');
 var util = require('util');
 cc.Class({
     extends: cc.Component,
@@ -43,10 +45,6 @@ cc.Class({
 			this.animState.pause();
 		}
 		this.node.pauseAllActions();
-		for(var key in this.balls){
-			var ball = this.balls[key];
-			ball.getComponent('RigidBall').delayToStatic(0,true);
-		}
 	},
 	syncSpeed(speed){
 		if(this.animState != null && this.isAbled == true){
@@ -65,10 +63,6 @@ cc.Class({
 	resumeMove(){
 		if(this.animState != null){
 			this.animState.resume();
-		}
-		for(var key in this.balls){
-			var ball = this.balls[key];
-			ball.getComponent('RigidBall').delayToStatic(0,false);
 		}
 		this.node.resumeAllActions();
 	},
@@ -109,13 +103,18 @@ cc.Class({
 		if(flag == true){
 			this.unschedule(this.checkAddCup);
 			this.setColor(0);
-			this.node.rotation = 0;
+			this.node.angle = 0;
 		}
 		var sbaNode = this.node.getChildByName('PropSBA');
 		if(sbaNode != null){
 			sbaNode.removeFromParent();
 			sbaNode.destroy();
 		}
+		for(var key in this.balls){
+			let ball = this.balls[key][0];
+			GlobalData.GameRunTime.BaseBallPool.put(ball);
+		}
+		this.balls = {};
 	},
 	initData(width,height,deep,speed,addSpeed){
 		//console.log('cup initData',width,height,deep,speed,addSpeed,audioManager);
@@ -123,7 +122,7 @@ cc.Class({
 		this.width = width;
 		this.speed = speed;
 		this.height = height;
-		this.node.rotation = 0;
+		this.node.angle = 0;
 		this.addSpeed = addSpeed;
 		if(this.rigidBody == null){
 			this.rigidBody = this.node.getComponent(cc.RigidBody);
@@ -148,27 +147,25 @@ cc.Class({
 		}
 		return false;
 	},
-	clearBalls(){
+	startBallFall(){
 		for(var key in this.balls){
-			var ball = this.balls[key];
-			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = ball;
-			ball.getComponent('RigidBall').fallReset(false);
+			let ball = this.balls[key][0];
+			let level = this.balls[key][1];
+			let rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
+			if(rigidBall == null){
+				rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
+			}
+			let rigidBallCom = rigidBall.getComponent('RigidBall');
+			rigidBallCom.setColor(level);
+			let pos = util.getPosFromNode(ball,GlobalData.game.mainGame);
+			GlobalData.GameRunTime.BaseBallPool.put(ball);
+			GlobalData.game.mainGame.addChild(rigidBall);
+			rigidBall.setPosition(cc.v2(pos.x,pos.y));
 		}
 		this.ballNum = 0;
+		this.balls = {};
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
-		this.balls = {};
-		this.resetStatus(false);
-	},
-	removeBalls(){
-		this.cupScoreDic = {};
-		this.cupScoreNumDic = {};
-		for(var key in this.balls){
-			var ball = this.balls[key];
-			ball.getComponent('RigidBall').fallReset(true);
-			GlobalData.GameRunTime.BallNodesPool.put(ball);
-		}
-		this.balls = {};
 	},
 	setCupLineClose(flag){
 		var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
@@ -200,13 +197,10 @@ cc.Class({
 		},this);
 		
 		var fallMiddle = cc.callFunc(function(){
-			self.clearBalls();
+			self.startBallFall();
 		},this);
+		//this.startBallFall();
 		this.setCupLineClose(false);
-		for(var key in this.balls){
-			var ball = this.balls[key];
-			ball.getComponent('RigidBall').delayLinerDamp(0,0);
-		}
 		this.rotateFlag = true;
 		this.rotateTime = tt;
 		if(GlobalData.CupConfig.CupMoveDir == 'right'){
@@ -220,7 +214,7 @@ cc.Class({
 		if(this.ballNum <= 0){
 			this.isAbled = false;
 			this.animState.stop();
-			console.log('checkFall',this.node.rotation);
+			console.log('checkFall',this.node.angle);
 			this.animState = this.anim.play('cupRightFallAnimation');
 		}
 	},
@@ -232,7 +226,7 @@ cc.Class({
 	cupBreakFinish(){
 		console.log('remove cup',this.node.uuid);
 		GlobalData.GameRunTime.CupAbledNum -= 1;
-		delete GlobalData.GameRunTime.CupNodesDic[data.uuid];
+		delete GlobalData.GameRunTime.CupNodesDic[this.node.uuid];
 		GlobalData.GameRunTime.CupNodesPool.put(this.node);
 		this.resetStatus(true);
 		GlobalData.game.mainGame.getComponent('MainGame').finishGame();
@@ -243,17 +237,11 @@ cc.Class({
 			contact.disabled = true;
 			return;
 		}
-		var self = this;
 		//如果碰撞瓶盖则代表球进入
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupLine){
-			if(this.balls[otherCollider.node.uuid] == null){
-				contact.disabled = true;
-				var ballCom = otherCollider.node.getComponent('RigidBall');
-				ballCom.isInCup = true;
-				this.ballNum += 1;
-				this.balls[otherCollider.node.uuid] = otherCollider.node;
-				this.setCupScoreLabel(otherCollider.node);
-			}
+			contact.disabled = true;
+			this.setCupScoreLabel(otherCollider.node);
+			this.addBall(otherCollider.node);
 			return;
 		}
 		if(otherCollider.tag == GlobalData.RigidBodyTag.ball && selfCollider.tag == GlobalData.RigidBodyTag.cupInner){
@@ -265,23 +253,56 @@ cc.Class({
 			}
 		}
     },
+	//小球进入杯子改变小球 来个 移花接木 提高性能
+	addBall(ballNode){
+		var baseBall = GlobalData.GameRunTime.BaseBallPool.get();
+		if(baseBall == null){
+			baseBall = cc.instantiate(GlobalData.assets['BaseBall']);
+		}
+		var idx = this.ballNum % GlobalData.CupConfig.BallInCupPos.length;
+		var pos = GlobalData.CupConfig.BallInCupPos[idx];
+		this.node.addChild(baseBall);
+		baseBall.setPosition(cc.v2(pos[0],pos[1]));
+		var ballCom = ballNode.getComponent('RigidBall');
+		var colorMat = GlobalData.BallConfig.BallColorDic[ballCom.color];
+		baseBall.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+		this.balls[baseBall.uuid] = [baseBall,ballCom.level];
+		this.ballNum += 1;
+		ballCom.fallReset();
+		GlobalData.GameRunTime.BallNodesPool.put(ballNode);
+		console.log(this.ballNum,util.getPosFromNode(baseBall,GlobalData.game.mainGame));
+	},
 	setCupScoreLabel(ballNode){
 		var self = this;
 		var ballCom = ballNode.getComponent('RigidBall');
 		if(this.level > ballCom.level){
 			ballCom.setColor(this.level);
 		}
+		//杯子中有宝箱 打开它把有惊喜也许
 		if(this.hasSBA == 1){
-			EventManager.emit({
-				type:'OpenSBA',
-				uuid:this.node.uuid
-			});
+			if(GlobalData.GameInfoConfig.gameStatus == 1){
+				GlobalData.game.mainGame.getComponent('MainGame').closeContent();
+			}
+			var propSba = PropManager.getSBA();
+			if(propSba != null){
+				var split = propSba.split('_');
+				if(split.length == 2){
+					GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').stopTrack();
+					GlobalData.game.propGame.getComponent('PropGame').initLoad(split[0],split[1]);
+				}
+			}
+			var sbaNode = this.node.getChildByName('PropSBA');
+			sbaNode.removeFromParent();
+			sbaNode.destroy();
 			this.hasSBA = 0;
 		}
 		ballCom.isInCup = true;
 		var size = this.node.getContentSize();
 		if(this.cupScoreDic[ballCom.color] == null){
-			var scoreLabel = cc.instantiate(GlobalData.assets['CupScore']);
+			var scoreLabel = GlobalData.GameRunTime.UpScorePool.get();
+			if(scoreLabel == null){
+				scoreLabel = cc.instantiate(GlobalData.assets['CupScore']);
+			}
 			var colorMat = GlobalData.BallConfig.BallColorDic[ballCom.color];
 			scoreLabel.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 			var scoreSize = scoreLabel.getContentSize();
@@ -309,10 +330,9 @@ cc.Class({
 			GlobalData.GameInfoConfig.maxLevel = GlobalData.GameRunTime.CircleLevel;
 			ThirdAPI.updataGameInfo();
 		}
-		this.cupScoreDic[ballCom.color].runAction(cc.sequence(cc.fadeOut(1.5),cc.callFunc(function(){
+		this.cupScoreDic[ballCom.color].runAction(cc.sequence(cc.fadeIn(0.1),cc.fadeOut(1.5),cc.callFunc(function(){
 			if(self.cupScoreDic[ballCom.color] != null){
-				self.cupScoreDic[ballCom.color].removeFromParent();
-				self.cupScoreDic[ballCom.color].destroy();
+				GlobalData.GameRunTime.UpScorePool.put(self.cupScoreDic[ballCom.color]);
 				self.cupScoreDic[ballCom.color] = null;
 			}
 		},this)));
@@ -326,15 +346,13 @@ cc.Class({
 				if(Uid == 0){
 					if(this.node.uuid == node.uuid){
 						GlobalData.GameRunTime.CircleLevel += 1;
-						EventManager.emit({
-							type:'UpdateCircle',
-							uuid:this.node.uuid
-						});
+						GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.LevelBell);
+						GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').updateCircle();
 					}
 					break;
 				}
 				Uid = Uid - 1;
 			}
 		}
-	}
+	},
 });

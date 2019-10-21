@@ -9,15 +9,14 @@ cc.Class({
 	initTrack(){
 		this.idxArray = new Array();
 		this.speedArray = new Array();
-		var cupSize = null;
-		if(GlobalData.GameRunTime.CupNodesPool == null){
-			GlobalData.GameRunTime.CupNodesPool = new cc.NodePool();
-		}
-		GlobalData.GameInfoConfig.addCupNum = 0;
 		var trickSize = this.node.getContentSize();
-		var AnimRigidCup = cc.instantiate(GlobalData.assets['AnimChainCup']);
-		cupSize = AnimRigidCup.getContentSize();
+		var AnimRigidCup = GlobalData.GameRunTime.CupNodesPool.get();
+		if(AnimRigidCup == null){
+			AnimRigidCup = cc.instantiate(GlobalData.assets['AnimChainCup']);
+		}
+		var cupSize = AnimRigidCup.getContentSize();
 		GlobalData.GameRunTime.CupNodesPool.put(AnimRigidCup);
+		GlobalData.GameInfoConfig.addCupNum = 0;
 		//计算杯子出现的位置
 		for(var i = 0;i < GlobalData.CupConfig.CupCreatNum;i++){
 			if(GlobalData.CupConfig.CupMoveDir == 'right'){
@@ -98,16 +97,15 @@ cc.Class({
 		}
 	},
 	removeAllCups(){
-		return;
 		for(var key in GlobalData.GameRunTime.CupNodesDic){
 			var cupNode = GlobalData.GameRunTime.CupNodesDic[key];
 			if(cupNode != null){
 				var cupCom = cupNode.getComponent('AnimRigidCup');
-				cupCom.removeBalls();
 				cupCom.resetStatus(true);
+				GlobalData.GameRunTime.CupNodesPool.put(cupNode);
 			}
 		}
-		console.log('stopTrack :',GlobalData.GameRunTime.CupNodesPool.size());
+		GlobalData.GameRunTime.CupNodesDic = {};
 	},
 	//开始阶段 一个杯子一个杯子添加
 	addStartCup(){
@@ -135,12 +133,49 @@ cc.Class({
 		GlobalData.GameRunTime.CupAbledNum += 1;
 		cupCom.startMove(this.idxArray);
 	},
-	removeCup(uuid){
-		var cupNode = GlobalData.GameRunTime.CupNodesDic[uuid];
-		console.log('remove cup',cupNode.uuid,GlobalData.GameRunTime.CupNodesPool.size());
-		if(cupNode != null){
-			var cupCom = cupNode.getComponent('AnimRigidCup');
-			cupCom.resetStatus(true);
+	updateCircle(){
+		var self = this;
+		var trickNodeSize = this.node.getContentSize();
+		//动画速度 0.1s/100m
+		var time = (trickNodeSize.width/2 + 100)/GlobalData.GameRunTime.CurrentSpeed;
+		
+		if(GlobalData.GameRunTime.CircleLevel % GlobalData.BallConfig.BallUpLevel == 0){
+			setTimeout(function(){
+				let UpLevelIsValid = new Array();
+				for(let key in GlobalData.GameRunTime.ContentBallsDic){
+					let ball = GlobalData.GameRunTime.ContentBallsDic[key];
+					if(ball != null && ball.isValid){
+						let ballCom = ball.getComponent('RigidBall');
+						if(ballCom.isInCup == false){
+							UpLevelIsValid.push(ball);
+						}
+					}
+				}
+				let BallNode = util.getRandomObjForArray(UpLevelIsValid);
+				if(BallNode != -1){
+					var ballCom = BallNode.getComponent('RigidBall');
+					if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
+						ballCom.setColor(ballCom.level + 1);
+					}
+				}
+			},time);
+		}
+		var upFlag = GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel;
+		if(upFlag == 0 || GlobalData.GameRunTime.CircleLevel == 1){
+			//设置速度升级
+			GlobalData.GameRunTime.CurrentSpeed *= (1 + GlobalData.CupConfig.CupSpeedArate);
+			if(GlobalData.GameRunTime.CurrentSpeed >= GlobalData.CupConfig.CupMoveMSpeed){
+				GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveMSpeed
+			}
+			setTimeout(function(){
+				self.upLevelCup(true);
+			},time);
+		}
+		var sbaFlag = GlobalData.GameRunTime.CircleLevel % GlobalData.cdnGameConfig.PropSBAFlag;
+		if(sbaFlag == 0){
+			setTimeout(function(){
+				self.addSBACup();
+			},time);
 		}
 	},
 	upLevelCup(flag){
@@ -162,7 +197,7 @@ cc.Class({
 		if(CupNode != -1){
 			let cupCom = CupNode.getComponent('AnimRigidCup');
 			if(cupCom.level < (GlobalData.CupConfig.CupColor.length - 1)){
-				this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
+				GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.CupLevelBell);
 				this.swapAction('PropUpLevel',CupNode);
 				//cupCom.setColor(cupCom.level + 1);
 				if(flag == false){
@@ -241,66 +276,5 @@ cc.Class({
 				setColorNextFunc
 			));
 		}
-	},
-	eventFunc(data){
-		console.log(data);
-		if(data.type == 'AddCup'){
-			var trickSize = this.node.getContentSize();
-			var cupNode = null;
-			if(GlobalData.GameRunTime.CupNodesPool.size() > 0){
-				cupNode = GlobalData.GameRunTime.CupNodesPool.get();
-			}else{
-				//cupNode = cc.instantiate(GlobalData.assets['ChainCup']);
-				cupNode = cc.instantiate(GlobalData.assets['AnimChainCup']);
-			}
-			var cupCom = cupNode.getComponent('AnimRigidCup');
-			this.node.addChild(cupNode);
-			if(GlobalData.CupConfig.CupMoveDir == 'right'){
-				cupNode.setPosition(cc.v2(169,331));
-			}else{
-				cupNode.setPosition(cc.v2(-169,331));
-			}
-			cupCom.initData(
-				trickSize.width,
-				trickSize.height,
-				GlobalData.GameInfoConfig.addCupNum,
-				GlobalData.CupConfig.CupMoveSpeed,
-				this.speedArray[GlobalData.GameInfoConfig.addCupNum],
-				this.audioManager);
-			GlobalData.GameRunTime.CupNodesDic[cupNode.uuid] = cupNode;
-			GlobalData.GameRunTime.CupAbledNum += 1;
-			cupCom.startMove(this.idxArray);
-		}
-	},
-	update(dt){
-		/*
-		for(var i = 0;i < this.rigidCupPool.length;i++){
-			var cupNode = this.rigidCupPool[i];
-			var cupDist = (this.dist - GlobalData.CupConfig.CupDist[i]) %2400;
-			if(cupNode != null){
-				if(cupDist >= 1962){//向右运动了
-					var x = cupDist - 1962 - this.trickSize.width/2;
-					var y = this.trickSize.height/2;
-					cupNode.setPosition(cc.v2(x,y));
-				}else if(cupDist >= 1300){//向上运动
-					var y = cupDist - 1300 - this.trickSize.height/2;
-					var x = -this.trickSize.width/2;
-					cupNode.setPosition(cc.v2(x,y));
-				}else if(cupDist >= 762){//向左运动
-					var x = this.trickSize.width/2 - (cupDist - 762);
-					var y = -this.trickSize.height/2;
-					cupNode.setPosition(cc.v2(x,y));
-				}else if(cupDist >= 100){//向下运动
-					var x = this.trickSize.width/2;
-					var y = this.trickSize.height/2 - (cupDist - 100);
-					cupNode.setPosition(cc.v2(x,y));
-				}else{
-					var x = 169 + cupDist;
-					var y = this.trickSize.height/2;
-					cupNode.setPosition(cc.v2(x,y));
-				}
-			}
-		}
-		*/
 	}
 });

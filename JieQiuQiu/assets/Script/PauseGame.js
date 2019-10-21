@@ -1,4 +1,3 @@
-var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -9,14 +8,26 @@ cc.Class({
     },
 
     onLoad () {
+		this.node.on(cc.Node.EventType.TOUCH_START,function(e){
+			e.stopPropagation();
+		});
 	},
 	//继续游戏按钮回调
 	onContinueCb(event){
-		EventManager.emit({type:'PauseContinue'});
+		GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		this.hidePause(()=>{
+			GlobalData.game.audioManager.getComponent('AudioManager').resumeGameBg();
+			GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').continueTrack();
+		});
 	},
 	//重新开始按钮回调
 	onResetCb(event){
-		EventManager.emit({type:'PauseReset'});
+		GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		this.hidePause(()=>{
+			GlobalData.game.audioManager.getComponent('AudioManager').stopGameBg();
+			GlobalData.game.mainGame.getComponent('MainGame').destroyGame();
+			GlobalData.game.startGame.getComponent('StartGame').onShow();
+		});
 	},
 	showPause(){
 		console.log("showPause game board show");
@@ -47,6 +58,7 @@ cc.Class({
 		var gotoHomeAction = cc.scaleTo(GlobalData.TimeActionParam.PauseGameMoveTime,0.2);
 		this.gotoHomeButton.runAction(gotoHomeAction);
 		var hideAction = cc.callFunc(function(){
+			self.node.active = false;
 			if(callBack != null){
 				callBack();
 			}

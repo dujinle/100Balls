@@ -1,6 +1,5 @@
 var WxVideoAd = require('WxVideoAd');
 var ThirdAPI = require('ThirdAPI');
-var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -16,11 +15,15 @@ cc.Class({
 		 this.cancelNode.active = false;
 		 this.bgContext.scale = 0.2;
 		 this.iscallBack = false;
+		 this.node.on(cc.Node.EventType.TOUCH_START,function(e){
+			e.stopPropagation();
+		});
 	},
 	initLoad(openType,prop){
 		var self = this;
 		this.openType = openType;
 		this.propKey = prop;
+		this.node.active = true;
 		if(this.openType == 'PropShare'){
 			this.typeSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['share'];
 		}else if(this.openType == 'PropAV'){
@@ -55,11 +58,7 @@ cc.Class({
 		}else if(this.openType == "PropAV"){
 			console.log(this.openType);
 			this.AVSuccessCb = function(arg){
-				EventManager.emit({
-					type:'PropSuccess',
-					prop:propKey
-				});
-				this.node.dispatchEvent(this.EventCustom);
+				GlobalData.game.getComponent('MainGame').openSBA(propKey);
 			}.bind(this);
 			this.AVFailedCb = function(arg){
 				if(arg == 'cancle'){
@@ -76,10 +75,7 @@ cc.Class({
 		var propKey = this.propKey;
 		if(this.iscallBack == false){
 			console.log(type, shareTicket, arg);
-			EventManager.emit({
-				type:'PropSuccess',
-				prop:propKey
-			});
+			GlobalData.game.getComponent('MainGame').openSBA(propKey);
 		}
 		this.iscallBack = true;
 	},
@@ -112,10 +108,11 @@ cc.Class({
 		}catch(err){}
 	},
 	cancel(){
-		EventManager.emit({
-			type:'PropCancle'
-		});
-		this.node.removeFromParent();
-		this.node.destroy();
+		this.node.active = false;
+		GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').continueTrack();
+		if(GlobalData.GameRunTime.BallUnFallNum > 0){
+			GlobalData.game.mainGame.getComponent('MainGame').fallOneBall();
+		}
+		GlobalData.game.mainGame.getComponent('MainGame').finishGame();
 	}
 });

@@ -28,7 +28,7 @@ cc.Class({
 	},
     startButtonCb(event){
 		this.node.active = false;
-		GlobalData.GameInfoConfig.juNum = 1;
+		GlobalData.GameInfoConfig.juNum += 1;
 		GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
 		GlobalData.game.mainGame.active = true;
 		GlobalData.game.mainGame.getComponent('MainGame').initGame();

@@ -1,5 +1,4 @@
 var ThirdAPI = require('ThirdAPI');
-var EventManager = require('EventManager');
 cc.Class({
     extends: cc.Component,
 
@@ -9,6 +8,9 @@ cc.Class({
 		innerChain:cc.Node,
     },
     onLoad () {
+		this.node.on(cc.Node.EventType.TOUCH_START,function(e){
+			e.stopPropagation();
+		});
 		console.log("finish game board load");
 	},
 	start(){
@@ -20,7 +22,8 @@ cc.Class({
 	},
 	show(){
 		console.log("finish game show");
-		this.initInnerChain(0);
+		this.node.active = true;
+		//this.initInnerChain(0);
 		if(typeof wx != 'undefined'){
 			this.isDraw = true;
 			//this.node.active = true;
@@ -40,15 +43,17 @@ cc.Class({
 			})));
 		}
 	},
-	hide(){
-		this.isDraw = false;
-		this.node.active = false;
-	},
 	rankButtonCb(){
-		EventManager.emit({type:'RankView'});
+		this.isDraw = false;
+		GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		GlobalData.game.rankGame.getComponent('RankGame').show();
 	},
 	restartButtonCb(){
-		EventManager.emit({type:'ReStartGame'});
+		GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
+		this.isDraw = false;
+		this.node.active = false;
+		GlobalData.game.mainGame.getComponent('MainGame').destroyGame();
+		GlobalData.game.mainGame.getComponent('MainGame').initGame();
 	},
 	shareToFriends(){
 		var param = {

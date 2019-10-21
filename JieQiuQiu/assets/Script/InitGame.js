@@ -9,6 +9,7 @@ cc.Class({
 		finishGame:cc.Node,
 		rankGame:cc.Node,
 		pauseGame:cc.Node,
+		propGame:cc.Node,
 		audioManager:cc.Node,
     },
 	onLoad: function () {
@@ -22,6 +23,7 @@ cc.Class({
 		this.finishGame.active = false;
 		this.rankGame.active = false;
 		this.pauseGame.active = false;
+		this.propGame.active = false;
 		util.customScreenAdapt();
     },
 	loadDataSync(){

@@ -1,7 +1,5 @@
-var util = require('util');
 var ThirdAPI = require('ThirdAPI');
 var PropManager = require('PropManager');
-var EventManager = require('EventManager');
 var WxVideoAd = require('WxVideoAd');
 var WxBannerAd = require('WxBannerAd');
 cc.Class({
@@ -9,11 +7,9 @@ cc.Class({
 
     properties: {
 		trickNode:cc.Node,
-		cupContent:cc.Node,
 		ballsNum:cc.Node,
 		contentCL:cc.Node,
 		floorNode:cc.Node,
-		graphicsNode:cc.Node,
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
 		buttonBig:cc.Node,
@@ -22,29 +18,16 @@ cc.Class({
 	onLoad(){
 		//如果用了物理引擎，可以通过修改游戏帧率和检测的步长降低检测频率，提高性能。
 		this.pymanager = cc.director.getPhysicsManager();
-		//this.gameProp = {};
 		this.pymanager.enabled = true;
-		//this.pymanager.start();
-		//this.graphics.clear();
-		// 开启物理步长的设置
-		this.pymanager.enabledAccumulator = true;
-
-		// 物理步长，默认 FIXED_TIME_STEP 是 1/60
-		this.pymanager.FIXED_TIME_STEP = 1/30;
-
-		// 每次更新物理系统处理速度的迭代次数，默认为 10
-		this.pymanager.VELOCITY_ITERATIONS = 8;
-
-		// 每次更新物理系统处理位置的迭代次数，默认为 10
-		this.pymanager.POSITION_ITERATIONS = 8;
-		
-		this.ballGraphics = this.graphicsNode.getComponent(cc.Graphics);
-		this.ballGraphics.clear();
-		
+		this.pymanager.enabledAccumulator = true;	// 开启物理步长的设置
+		this.pymanager.FIXED_TIME_STEP = 1/30;		// 物理步长，默认 FIXED_TIME_STEP 是 1/60
+		this.pymanager.VELOCITY_ITERATIONS = 8;		// 每次更新物理系统处理速度的迭代次数，默认为 10
+		this.pymanager.POSITION_ITERATIONS = 8;		// 每次更新物理系统处理位置的迭代次数，默认为 10
 	},
 	//第一次进入游戏初始化数据
 	initGame(){
 		console.log('MainGame initGame');
+		this.node.active = true;
 		/*
 		this.pymanager.debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
 		cc.PhysicsManager.DrawBits.e_pairBit |
@@ -52,23 +35,50 @@ cc.Class({
 		cc.PhysicsManager.DrawBits.e_jointBit |
 		cc.PhysicsManager.DrawBits.e_shapeBit;
 		*/
+		for(var key in GlobalData.GameRunTime.ContentBallsDic){
+			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
+			if(rigidBall != null){
+				rigidBall.getComponent('RigidBall').fallReset(true);
+				GlobalData.GameRunTime.BallNodesPool.put(rigidBall);
+			}
+		}
+		//创建对象池用于对象的回收利用
 		if(GlobalData.GameRunTime.BallNodesPool == null){
 			GlobalData.GameRunTime.BallNodesPool = new cc.NodePool();
 		}
+		if(GlobalData.GameRunTime.CupNodesPool == null){
+			GlobalData.GameRunTime.CupNodesPool = new cc.NodePool();
+		}
+		if(GlobalData.GameRunTime.UpScorePool == null){
+			GlobalData.GameRunTime.UpScorePool = new cc.NodePool();
+		}
+		if(GlobalData.GameRunTime.BaseBallPool == null){
+			GlobalData.GameRunTime.BaseBallPool = new cc.NodePool();
+		}
 		GlobalData.GameRunTime.BallUnFallNum = GlobalData.BallConfig.BallTotalNum;
-		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
+		GlobalData.GameRunTime.BallAbledNum = GlobalData.GameRunTime.BallUnFallNum;
+		//清除数据
+		GlobalData.GameRunTime.ContentBallsDic = {};
+		GlobalData.GameRunTime.CupNodesDic = {};
+		GlobalData.GameRunTime.CircleLevel = 0;
+		GlobalData.GameRunTime.TotalScore = 0;
+		GlobalData.GameRunTime.AudioPlayNum = 0;
+		GlobalData.GameRunTime.CupAbledNum = 0;
+		GlobalData.GameInfoConfig.addCupNum = 0;
+		GlobalData.GameRunTime.BallAppearNum = 0;
+		GlobalData.GameInfoConfig.PropRelive = 0;
+		
 		this.freshPropStatus();
 		this.initFallBalls();
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.trickNode.getComponent('TrackManager').startTrack();
-		//GlobalData.game.audioManager.getComponent('AudioManager').playGameBg();
+		GlobalData.game.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameInfoConfig.gameStatus = 0;
 		//this.setBannerAD();
 		this.node.on(cc.Node.EventType.TOUCH_START,this.openContent,this);
 		this.node.on(cc.Node.EventType.TOUCH_END,this.closeContent,this);
 		this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
 		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum,this.floorNode.active);
-		//this.initParticle();
 	},
 	initParticle(){
 		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
@@ -94,10 +104,7 @@ cc.Class({
 		if(customEventData == "P_show"){
 			this.audioManager.getComponent("AudioManager").pauseGameBg();
 			this.trickNode.getComponent('TrackManager').stopTrack();
-			this.showPBGameScene({
-				scene:'PauseGameScene',
-				type:null
-			});
+			GlobalData.game.pauseGame.getComponent('PauseGame').showPause();
 		}else if(customEventData == "C_Big"){
 			var propType = PropManager.getProp('PropBig');
 			if(propType != null){
@@ -124,10 +131,13 @@ cc.Class({
 			this.shareSuccessCb = function(type, shareTicket, arg){
 				if(this.iscallBack == false){
 					this.trickNode.getComponent('TrackManager').continueTrack();
-					EventManager.emit({
-						type:'GetPropSuccess',
-						prop:prop
-					});
+					if(prop == 'PropBig'){
+						this.trickNode.getComponent('TrackManager').bigOneCup();
+						this.freshPropStatus();
+					}else if(prop == 'PropUpLevel'){
+						this.trickNode.getComponent('TrackManager').upLevelCup(false);
+						this.freshPropStatus();
+					}
 				}
 				this.iscallBack = true;
 			};
@@ -153,10 +163,13 @@ cc.Class({
 		else if(openType == "PropAV"){
 			this.AVSuccessCb = function(arg){
 				this.trickNode.getComponent('TrackManager').continueTrack();
-				EventManager.emit({
-					type:'GetPropSuccess',
-					prop:prop
-				});
+				if(prop == 'PropBig'){
+					this.trickNode.getComponent('TrackManager').bigOneCup();
+					this.freshPropStatus();
+				}else if(prop == 'PropUpLevel'){
+					this.trickNode.getComponent('TrackManager').upLevelCup(false);
+					this.freshPropStatus();
+				}
 			}.bind(this);
 			this.AVFailedCb = function(arg){
 				this.showFailInfo(openType,prop);
@@ -190,7 +203,6 @@ cc.Class({
 	//再次进入游戏 数据重置
 	enterGame(){
 		GlobalData.GameInfoConfig.juNum += 1;
-		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 		this.freshPropStatus();
 		this.initFallBalls();
 		this.trickNode.getComponent('TrackManager').startTrack();
@@ -210,218 +222,58 @@ cc.Class({
 		GlobalData.GameInfoConfig.gameStatus = 0;
 		this.contentCL.getComponent('ContentCL').closeContent();
 	},
-	BallFallEvent(data){
+	openSBA(prop){
 		var self = this;
-		console.log(data);
-		if(data.type == 'FallLine'){
-			GlobalData.GameRunTime.BallAbledNum -= 1;
-			GlobalData.GameRunTime.BallAppearNum -= 1;
-			if(GlobalData.GameRunTime.BallAbledNum == GlobalData.cdnGameConfig.PropRelive){
-				var openType = PropManager.getPropRelive();
-				if(openType != null){
-					this.trickNode.getComponent('TrackManager').stopTrack();
-					this.propGameScene = cc.instantiate(GlobalData.assets['PropGameScene']);
-					this.mainGameBoard.addChild(this.propGameScene);
-					this.propGameScene.setPosition(cc.v2(0,0));
-					this.propGameScene.getComponent('PropGame').initLoad(openType,'PropRelive');
-				}
-			}else{
-				if(GlobalData.GameRunTime.BallUnFallNum > 0){
-					this.fallOneBall();
-				}
-				this.finishGame();
-			}
-		}else if(data.type == 'StartGame'){
-			this.startGameBoard.active = false;
-			this.mainGameBoard.active = true;
-			this.clearGame();
-			this.initGame();
-		}else if(data.type == 'ReStartGame'){
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
-			this.finishGameScene.removeFromParent();
-			this.finishGameScene.destroy();
-			this.clearGame();
-			this.enterGame();
-		}
-		else if(data.type == 'OpenSBA'){
-			if(GlobalData.GameInfoConfig.gameStatus == 1){
-				this.closeContent();
-			}
-			var propSba = PropManager.getSBA();
-			if(propSba != null){
-				var split = propSba.split('_');
-				if(split.length == 2){
-					this.trickNode.getComponent('TrackManager').stopTrack();
-					this.propGameScene = cc.instantiate(GlobalData.assets['PropGameScene']);
-					this.mainGameBoard.addChild(this.propGameScene);
-					this.propGameScene.setPosition(cc.v2(0,0));
-					this.propGameScene.getComponent('PropGame').initLoad(split[0],split[1]);
-				}
-			}
-			var cupNode = GlobalData.GameRunTime.CupNodesDic[data.uuid];
-			var sbaNode = cupNode.getChildByName('PropSBA');
-			sbaNode.removeFromParent();
-			sbaNode.destroy();
-		}
-		else if(data.type == 'UpdateCircle'){
-			this.levelLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.CircleLevel;
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.LevelBell);
-			//如果球体升级则进行颜色变化
-			var self = this;
-			var trickNodeSize = this.trickNode.getContentSize();
-			//动画速度 0.1s/100m
-			var time = (trickNodeSize.width/2 + 100)/GlobalData.GameRunTime.CurrentSpeed;
-			
-			if(GlobalData.GameRunTime.CircleLevel % GlobalData.BallConfig.BallUpLevel == 0){
-				setTimeout(function(){
-					let UpLevelIsValid = new Array();
-					for(let key in GlobalData.GameRunTime.ContentBallsDic){
-						let ball = GlobalData.GameRunTime.ContentBallsDic[key];
-						if(ball != null && ball.isValid){
-							UpLevelIsValid.push(ball);
-						}
-					}
-					let BallNode = util.getRandomObjForArray(UpLevelIsValid);
-					if(BallNode != -1){
-						var ballCom = BallNode.getComponent('RigidBall');
-						if(ballCom.level < (GlobalData.BallConfig.BallColor.length - 1)){
-							ballCom.setColor(ballCom.level + 1);
-						}
-					}
-				},time);
-			}
-			var upFlag = GlobalData.GameRunTime.CircleLevel % GlobalData.CupConfig.CupUpLevel;
-			if(upFlag == 0 || GlobalData.GameRunTime.CircleLevel == 1){
-				//设置速度升级
-				GlobalData.GameRunTime.CurrentSpeed *= (1 + GlobalData.CupConfig.CupSpeedArate);
-				if(GlobalData.GameRunTime.CurrentSpeed >= GlobalData.CupConfig.CupMoveMSpeed){
-					GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveMSpeed
-				}
-				setTimeout(function(){
-					self.trickNode.getComponent('TrackManager').upLevelCup(true);
-				},time);
-			}
-			var sbaFlag = GlobalData.GameRunTime.CircleLevel % GlobalData.cdnGameConfig.PropSBAFlag;
-			if(sbaFlag == 0){
-				setTimeout(function(){
-					self.trickNode.getComponent('TrackManager').addSBACup();
-				},time);
-			}
-		}
-		else if(data.type == 'RankView'){
-			WxBannerAd.hideBannerAd();
-			if(this.finishGameScene != null){
-				this.finishGameScene.getComponent("FinishGame").isDraw = false;
-			}
-			this.showPBGameScene({
-				scene:'RankGameScene',
-				type:'rankUIFriendRank'
-			});
-		}
-		else if(data.type == 'RankGroupView'){
-			if(this.finishGameScene != null){
-				this.finishGameScene.getComponent("FinishGame").isDraw = false;
-			}
-			this.showPBGameScene({
-				scene:'RankGameScene',
-				type:'rankUIGroupRank'
-			});
-		}
-		else if(data.type == 'PauseContinue'){
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
-			if(this.pauseGameScene != null){
-				this.pauseGameScene.getComponent("PauseGame").hidePause(function(){
-					self.audioManager.getComponent('AudioManager').resumeGameBg();
-					self.destroyGameBoard(self.pauseGameScene);
-					self.trickNode.getComponent('TrackManager').continueTrack();
-				});
-			}
-		}
-		else if(data.type == 'PauseReset'){
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
-			if(this.pauseGameScene != null){
-				this.pauseGameScene.getComponent("PauseGame").hidePause(function(){
-					self.destroyGameBoard(self.pauseGameScene);
-					self.destroyGame();
-					self.audioManager.getComponent('AudioManager').stopGameBg();
-					self.mainGameBoard.active = false;
-					self.startGameBoard.active = true;
-				});
-			}
-		}
-		else if(data.type == 'GetPropSuccess'){
-			if(data.prop == 'PropBig'){
-				this.trickNode.getComponent('TrackManager').bigOneCup();
-				this.freshPropStatus();
-			}else if(data.prop == 'PropUpLevel'){
-				this.trickNode.getComponent('TrackManager').upLevelCup(false);
-				this.freshPropStatus();
-			}
-		}
-		else if(data.type == 'PropSuccess'){
-			this.propGameScene.removeFromParent();
-			this.propGameScene.destroy();
-			
-			if(data.prop == 'PropRelive'){
-				GlobalData.GameInfoConfig.PropRelive += 1;
-				var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
-				this.mainGameBoard.addChild(sbaNode);
-				sbaNode.setPosition(cc.v2(0,0));
-				var finishFunc = cc.callFunc(function(){
-					sbaNode.removeFromParent();
-					sbaNode.destroy();
-				},this);
-				let pos = this.cupContent.getPosition();
-				sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),finishFunc));
-				setTimeout(function(){
-					GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
-					GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
-					self.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
-					if(GlobalData.GameRunTime.BallUnFallNum > 0){
-						self.fallOneBall();
-					}
-					for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
-						self.fallOneBall();
-					}
-					self.finishGame();
-					self.trickNode.getComponent('TrackManager').continueTrack();
-				},1200);
-			}else if(data.prop == 'PropBig'){
-				this.trickNode.getComponent('TrackManager').continueTrack();
-				this.trickNode.getComponent('TrackManager').bigOneCup(true);
-			}else if(data.prop == 'PropUpLevel'){
-				this.trickNode.getComponent('TrackManager').continueTrack();
-				this.trickNode.getComponent('TrackManager').upLevelCup(true);
-			}else if(data.prop == 'PropAddBall'){
-				var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
-				this.mainGameBoard.addChild(sbaNode);
-				sbaNode.setPosition(cc.v2(0,0));
-				var finishFunc = cc.callFunc(function(){
-					sbaNode.removeFromParent();
-					sbaNode.destroy();
-				},this);
-				let pos = this.cupContent.getPosition();
-				sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),cc.fadeOut(),finishFunc));
-				setTimeout(function(){
-					GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
-					GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
-					self.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
-					if(GlobalData.GameRunTime.BallUnFallNum > 0){
-						self.fallOneBall();
-					}
-					for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
-						self.fallOneBall();
-					}
-					self.trickNode.getComponent('TrackManager').continueTrack();
-				},1200);
-			}
-		}
-		else if(data.type == 'PropCancle'){
+		if(prop == 'PropBig'){
 			this.trickNode.getComponent('TrackManager').continueTrack();
-			if(GlobalData.GameRunTime.BallUnFallNum > 0){
-				this.fallOneBall();
-			}
-			this.finishGame();
+			this.trickNode.getComponent('TrackManager').bigOneCup(true);
+		}else if(prop == 'PropUpLevel'){
+			this.trickNode.getComponent('TrackManager').continueTrack();
+			this.trickNode.getComponent('TrackManager').upLevelCup(true);
+		}else if(prop == 'PropAddBall'){
+			var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
+			this.node.addChild(sbaNode);
+			sbaNode.setPosition(cc.v2(0,0));
+			var finishFunc = cc.callFunc(function(){
+				sbaNode.removeFromParent();
+				sbaNode.destroy();
+			},this);
+			let pos = this.ballsNum.getPosition();
+			sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),cc.fadeOut(),finishFunc));
+			setTimeout(function(){
+				GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+				GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+				if(GlobalData.GameRunTime.BallUnFallNum > 0){
+					self.fallOneBall();
+				}
+				for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
+					self.fallOneBall();
+				}
+				self.trickNode.getComponent('TrackManager').continueTrack();
+			},1200);
+		}else if(prop == 'PropRelive'){
+			GlobalData.GameInfoConfig.PropRelive += 1;
+			var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
+			this.node.addChild(sbaNode);
+			sbaNode.setPosition(cc.v2(0,0));
+			var finishFunc = cc.callFunc(function(){
+				sbaNode.removeFromParent();
+				sbaNode.destroy();
+			},this);
+			let pos = this.ballsNum.getPosition();
+			sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),finishFunc));
+			setTimeout(function(){
+				GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+				GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+				if(GlobalData.GameRunTime.BallUnFallNum > 0){
+					self.fallOneBall();
+				}
+				for(var i = GlobalData.GameRunTime.BallAppearNum;i < GlobalData.BallConfig.BallPreFall;i++){
+					self.fallOneBall();
+				}
+				self.finishGame();
+				self.trickNode.getComponent('TrackManager').continueTrack();
+			},1200);
 		}
 	},
 	initFallBalls(){
@@ -442,17 +294,13 @@ cc.Class({
 				GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 				GlobalData.GameRunTime.BallUnFallNum -= 1;
 				GlobalData.GameRunTime.BallAppearNum += 1;
-				this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 			}
 		}
 	},
 	fallOneBall(){
 		if(GlobalData.GameRunTime.BallUnFallNum > 0){
-			let rigidBall = null;
-			if (GlobalData.GameRunTime.BallNodesPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
-				rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
-				console.log('BallNodesPool get:',rigidBall.uuid);
-			} else { // 如果没有空闲对象，也就是对象池中备用对象不够时，我们就用 cc.instantiate 重新创建
+			let rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
+			if (rigidBall == null) { // 通过 size 接口判断对象池中是否有空闲的对象
 				rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
 			}
 			this.node.addChild(rigidBall);
@@ -460,23 +308,23 @@ cc.Class({
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
 			GlobalData.GameRunTime.BallUnFallNum -= 1;
 			GlobalData.GameRunTime.BallAppearNum += 1;
-			this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 		}
 	},
 	//清除游戏中的数据
 	destroyGame(){
 		this.clearGame();
-		GlobalData.GameRunTime.BallNodesPool.clear();
-		this.trickNode.getComponent('TrackManager').rigidCupPool.clear();
 		WxBannerAd.hideBannerAd();
+		this.node.active = false;
 	},
 	clearGame(){
 		//清除球体
 		//console.log(GlobalData.GameRunTime);
 		for(var key in GlobalData.GameRunTime.ContentBallsDic){
 			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
-			rigidBall.getComponent('RigidBall').fallReset(true);
-			GlobalData.GameRunTime.BallNodesPool.put(rigidBall);
+			if(rigidBall != null){
+				rigidBall.getComponent('RigidBall').fallReset(true);
+				GlobalData.GameRunTime.BallNodesPool.put(rigidBall);
+			}
 		}
 		this.trickNode.getComponent('TrackManager').removeAllCups();
 		//this.rigidBallPool.clear();
@@ -493,8 +341,6 @@ cc.Class({
 		GlobalData.GameInfoConfig.addCupNum = 0;
 		GlobalData.GameRunTime.BallAppearNum = 0;
 		GlobalData.GameInfoConfig.PropRelive = 0;
-		this.scoreLabel.getComponent(cc.Label).string = 0;
-		this.levelLabel.getComponent(cc.Label).string = 0;
 		this.node.off(cc.Node.EventType.TOUCH_START,this.openContent,this);
 		this.node.off(cc.Node.EventType.TOUCH_END,this.closeContent,this);
 		this.node.off(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
@@ -503,38 +349,10 @@ cc.Class({
 		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
 		if(GlobalData.GameRunTime.CupAbledNum <= 1 || GlobalData.GameRunTime.BallAbledNum <= 0){
 			this.trickNode.getComponent('TrackManager').stopTrack();
-			this.audioManager.getComponent('AudioManager').stopGameBg();
-			this.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
-			this.showPBGameScene({
-				scene:'FinishGameScene',
-				type:null
-			});
+			GlobalData.game.audioManager.getComponent('AudioManager').stopGameBg();
+			GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
+			GlobalData.game.finishGame.getComponent("FinishGame").show();
 		}
-	},
-	showPBGameScene(data){
-		if(data.scene == 'FinishGameScene'){
-			this.finishGameScene = cc.instantiate(GlobalData.assets[data.scene]);
-			this.node.addChild(this.finishGameScene);
-			this.finishGameScene.setPosition(cc.v2(0,0));
-			this.finishGameScene.getComponent("FinishGame").show();
-		}else if(data.scene == 'RankGameScene'){
-			this.rankGameScene = cc.instantiate(GlobalData.assets[data.scene]);
-			this.node.addChild(this.rankGameScene);
-			this.rankGameScene.setPosition(cc.v2(0,0));
-			this.rankGameScene.getComponent("RankGame").show(data.type);
-		}else if(data.scene == 'PauseGameScene'){
-			this.pauseGameScene = cc.instantiate(GlobalData.assets['PauseGameScene']);
-			this.node.addChild(this.pauseGameScene);
-			this.pauseGameScene.setPosition(cc.v2(0,0));
-			this.pauseGameScene.getComponent("PauseGame").showPause();
-		}
-	},
-	destroyGameBoard(board){
-		if(board != null){
-			board.removeFromParent();
-			board.destroy();
-		}
-		return null;
 	},
 	freshPropStatus(){
 		if(GlobalData.cdnPropParam.PropUnLock['PropBig'] <= GlobalData.GameInfoConfig.juNum){
@@ -599,43 +417,7 @@ cc.Class({
 	},
 	update(){
 		this.scoreLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.TotalScore;
-		return;
-		let winsize = cc.winSize;
-		this.ballGraphics.clear();
-		for(var key in GlobalData.GameRunTime.ContentBallsDic){
-			let ball = GlobalData.GameRunTime.ContentBallsDic[key];
-			if(ball == null){
-				continue;
-			}
-			let ballCom = ball.getComponent('RigidBall');
-			let color = ballCom.color;
-			let size = ball.getContentSize();
-			var colorMat = GlobalData.BallConfig.BallColorDic[color];
-			this.ballGraphics.strokeColor = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
-			this.ballGraphics.fillColor = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
-			let bassPos1 = cc.v2(winsize.width/2 + ball.x,winsize.height/2 + ball.y);
-			this.ballGraphics.circle(bassPos1.x, bassPos1.y, size.width/2);
-			this.ballGraphics.fill();
-			this.ballGraphics.stroke();
-		}
-		return;
-		/*
-		let size = cc.winSize;
-		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
-		let vertsCount = this.particleSystem.GetParticleCount();
-		let posVerts = this.particleSystem.GetPositionBuffer();
-		let gra = this.node.getComponent(cc.Graphics);
-		gra.clear();
-		let totalCount = 0;
-		//var box = this.rigidCup.getBoundingBox();
-		for (let i = 0; i < vertsCount; i++) {
-			let bassPos1 = cc.v2(posVerts[i].x,posVerts[i].y);
-			bassPos1.x = (bassPos1.x * PTM_RATIO);
-			bassPos1.y = (bassPos1.y * PTM_RATIO);
-			gra.circle(bassPos1.x, bassPos1.y, GlobalData.BallConfig.radius * PTM_RATIO);
-			gra.fill();
-			gra.stroke();
-		}
-		*/
+		this.levelLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.CircleLevel;
+		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
 	}
 });

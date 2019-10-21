@@ -201,6 +201,9 @@
     "isInCup": false,
     "isAbled": true,
     "fallLine": false,
+    "innerNode": {
+      "__id__": 2
+    },
     "touchCupMusic": false,
     "touchFloorMusic": false,
     "_id": ""

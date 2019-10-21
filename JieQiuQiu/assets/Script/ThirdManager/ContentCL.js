@@ -1,3 +1,4 @@
+var PropManager = require('PropManager');
 cc.Class({
     extends: cc.Component,
 
@@ -27,6 +28,18 @@ cc.Class({
 			if(ballCom.touchFloorMusic == false){
 				GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.BallTouchFloor);
 				ballCom.touchFloorMusic = true;
+				GlobalData.GameRunTime.BallAbledNum -= 1;
+				GlobalData.GameRunTime.BallAppearNum -= 1;
+				if(GlobalData.GameRunTime.BallAbledNum == GlobalData.cdnGameConfig.PropRelive){
+					var openType = PropManager.getPropRelive();
+					if(openType != null){
+						GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').stopTrack();
+						GlobalData.game.propGame.getComponent('PropGame').initLoad(openType,'PropRelive');
+					}
+				}else{
+					GlobalData.game.mainGame.getComponent('MainGame').fallOneBall();
+					GlobalData.game.mainGame.getComponent('MainGame').finishGame();
+				}
 				if(ballCom.fallLine == true){
 					ballCom.fallRemove();
 				}
@@ -37,7 +50,6 @@ cc.Class({
 			contact.disabled = true;
 			var ballCom = otherCollider.node.getComponent('RigidBall');
 			ballCom.fallLine = true;
-			GlobalData.game.mainGame.getComponent('MainGame').fallOneBall();
 			return;
 		}
     },
