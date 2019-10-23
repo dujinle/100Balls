@@ -1,7 +1,7 @@
 GlobalData = {
 	phoneModel:'Normal',
-	cdnWebsite: "https://alicdn.zhituokeji.com/",
-	cdnFileDefaultPath:"cdnBallsParam1.0.2",
+	cdnWebsite: "https://www.enjoymygame.com/",
+	cdnFileDefaultPath:"/xiaochengxu/jieqiuqiu/jieqiuqiu.json",
 	AudioManager:{
 		ButtonClick:0,
 		//Ball中的音乐
@@ -90,7 +90,7 @@ GlobalData = {
 		BallRow:[10,8,6,4,2],
 		BallGravityScale:5,
 		BallUpLevel:1,
-		Radius:11,
+		Radius:0.3,
 		BallTotalNum:100,
 		BallGravityScale:10,
 		BallPreFall:30

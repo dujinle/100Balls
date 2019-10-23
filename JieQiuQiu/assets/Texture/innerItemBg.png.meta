@@ -2,7 +2,7 @@
   "ver": "2.3.1",
   "uuid": "d23f5486-0e4b-4d6a-909f-d95be6c5bd18",
   "type": "sprite",
-  "wrapMode": "clamp",
+  "wrapMode": "repeat",
   "filterMode": "bilinear",
   "premultiplyAlpha": false,
   "platformSettings": {},

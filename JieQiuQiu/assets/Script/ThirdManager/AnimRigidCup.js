@@ -20,7 +20,6 @@ cc.Class({
 		hasSBA:0,
     },
     onLoad () {
-		console.log("creat cup start");
 		this.balls = {};
 		this.level = 0;
 		this.ballNum = 0;
@@ -100,11 +99,12 @@ cc.Class({
 		this.isAbled = true;
 		this.rotateFlag = false;
 		this.touchFloorMusic = false;
-		if(flag == true){
-			this.unschedule(this.checkAddCup);
-			this.setColor(0);
-			this.node.angle = 0;
+		if(this.animState != null){
+			this.animState.stop();
 		}
+		this.unschedule(this.checkAddCup);
+		this.setColor(0);
+		this.node.angle = 0;
 		var sbaNode = this.node.getChildByName('PropSBA');
 		if(sbaNode != null){
 			sbaNode.removeFromParent();
@@ -160,7 +160,8 @@ cc.Class({
 			let pos = util.getPosFromNode(ball,GlobalData.game.mainGame);
 			GlobalData.GameRunTime.BaseBallPool.put(ball);
 			GlobalData.game.mainGame.addChild(rigidBall);
-			rigidBall.setPosition(cc.v2(pos.x,pos.y));
+			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
+			rigidBall.setPosition(cc.v2(pos.x + this.rotateTime / 3,pos.y));
 		}
 		this.ballNum = 0;
 		this.balls = {};
@@ -268,9 +269,14 @@ cc.Class({
 		baseBall.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 		this.balls[baseBall.uuid] = [baseBall,ballCom.level];
 		this.ballNum += 1;
-		ballCom.fallReset();
-		GlobalData.GameRunTime.BallNodesPool.put(ballNode);
-		console.log(this.ballNum,util.getPosFromNode(baseBall,GlobalData.game.mainGame));
+		console.log('addBall put:',ballNode.uuid);
+		//这里 能用对象池吗？不能用 不是线程安全的在其他地方同时引用会出错
+		//怎么办？不回收了直接删除吧 省心
+		//GlobalData.GameRunTime.BallNodesPool.put(ballNode);
+		//ballCom.fallReset();
+		ballNode.removeFromParent();
+		ballNode.destroy();
+		GlobalData.GameRunTime.ContentBallsDic[ballNode.uuid] = null;
 	},
 	setCupScoreLabel(ballNode){
 		var self = this;

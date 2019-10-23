@@ -13,16 +13,19 @@ cc.Class({
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
 		buttonBig:cc.Node,
+		ballContent:cc.Node,
 		buttonUpLevel:cc.Node,
     },
 	onLoad(){
 		//如果用了物理引擎，可以通过修改游戏帧率和检测的步长降低检测频率，提高性能。
 		this.pymanager = cc.director.getPhysicsManager();
-		this.pymanager.enabled = true;
+		this.pymanager.start();
+		//this.pymanager.enabled = true;
 		this.pymanager.enabledAccumulator = true;	// 开启物理步长的设置
 		this.pymanager.FIXED_TIME_STEP = 1/30;		// 物理步长，默认 FIXED_TIME_STEP 是 1/60
 		this.pymanager.VELOCITY_ITERATIONS = 8;		// 每次更新物理系统处理速度的迭代次数，默认为 10
 		this.pymanager.POSITION_ITERATIONS = 8;		// 每次更新物理系统处理位置的迭代次数，默认为 10
+		this.ballGraphics = this.node.getComponent(cc.Graphics);
 	},
 	//第一次进入游戏初始化数据
 	initGame(){
@@ -35,13 +38,6 @@ cc.Class({
 		cc.PhysicsManager.DrawBits.e_jointBit |
 		cc.PhysicsManager.DrawBits.e_shapeBit;
 		*/
-		for(var key in GlobalData.GameRunTime.ContentBallsDic){
-			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
-			if(rigidBall != null){
-				rigidBall.getComponent('RigidBall').fallReset(true);
-				GlobalData.GameRunTime.BallNodesPool.put(rigidBall);
-			}
-		}
 		//创建对象池用于对象的回收利用
 		if(GlobalData.GameRunTime.BallNodesPool == null){
 			GlobalData.GameRunTime.BallNodesPool = new cc.NodePool();
@@ -69,12 +65,13 @@ cc.Class({
 		GlobalData.GameInfoConfig.PropRelive = 0;
 		
 		this.freshPropStatus();
-		this.initFallBalls();
+		//this.initFallBalls();
 		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
 		this.trickNode.getComponent('TrackManager').startTrack();
 		GlobalData.game.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameInfoConfig.gameStatus = 0;
 		//this.setBannerAD();
+		this.initParticle();
 		this.node.on(cc.Node.EventType.TOUCH_START,this.openContent,this);
 		this.node.on(cc.Node.EventType.TOUCH_END,this.closeContent,this);
 		this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
@@ -82,17 +79,17 @@ cc.Class({
 	},
 	initParticle(){
 		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
-		var shuiLongTouSize = this.ballsNum.getContentSize();
-		var shuiLongTouPos = this.ballsNum.getPosition();
+		var shuiLongTouSize = this.ballContent.getContentSize();
+		var shuiLongTouPos = this.ballContent.getPosition();
 		var size = cc.winSize;
 		this.particleSystem = this.pymanager._particles;
 		var box = new b2.PolygonShape();
-		box.SetAsBox(shuiLongTouSize.width/2/PTM_RATIO, (shuiLongTouSize.height * 1.5)/PTM_RATIO, new b2.Vec2(0, 0), 0);
+		box.SetAsBox(shuiLongTouSize.width/4/PTM_RATIO, (shuiLongTouSize.height/4)/PTM_RATIO, new b2.Vec2(0, 0), 0);
 
 		var particleGroupDef = new b2.ParticleGroupDef();
 		particleGroupDef.shape = box;
-		particleGroupDef.flags = 16384;//b2.springParticle;
-		particleGroupDef.position.Set((shuiLongTouPos.x + size.width/2)/PTM_RATIO,(shuiLongTouPos.y + size.height/2 + shuiLongTouSize.height* 2.2)/PTM_RATIO);
+		particleGroupDef.flags = b2.waterParticle;
+		particleGroupDef.position.Set((shuiLongTouPos.x + size.width/2)/PTM_RATIO,(shuiLongTouPos.y + size.height/2)/PTM_RATIO);
 		this.particleGroup = this.particleSystem.CreateParticleGroup(particleGroupDef);
 	},
 	//所有面板的button按钮 返回函数
@@ -100,9 +97,9 @@ cc.Class({
 		var self = this;
 		//继续游戏
 		console.log('panelButtonCb',customEventData);
-		this.audioManager.getComponent("AudioManager").play(GlobalData.AudioManager.ButtonClick);
+		GlobalData.game.audioManager.getComponent("AudioManager").play(GlobalData.AudioManager.ButtonClick);
 		if(customEventData == "P_show"){
-			this.audioManager.getComponent("AudioManager").pauseGameBg();
+			GlobalData.game.audioManager.getComponent("AudioManager").pauseGameBg();
 			this.trickNode.getComponent('TrackManager').stopTrack();
 			GlobalData.game.pauseGame.getComponent('PauseGame').showPause();
 		}else if(customEventData == "C_Big"){
@@ -200,20 +197,6 @@ cc.Class({
 			});
 		}catch(err){}
 	},
-	//再次进入游戏 数据重置
-	enterGame(){
-		GlobalData.GameInfoConfig.juNum += 1;
-		this.freshPropStatus();
-		this.initFallBalls();
-		this.trickNode.getComponent('TrackManager').startTrack();
-		this.audioManager.getComponent('AudioManager').playGameBg();
-		GlobalData.GameRunTime.CurrentSpeed = GlobalData.CupConfig.CupMoveSpeed;
-		ThirdAPI.updataGameInfo();
-		WxBannerAd.showBannerAd();
-		this.node.on(cc.Node.EventType.TOUCH_START,this.openContent,this);
-		this.node.on(cc.Node.EventType.TOUCH_END,this.closeContent,this);
-		this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
-	},
 	openContent(){
 		this.contentCL.getComponent('ContentCL').openContent();
 		GlobalData.GameInfoConfig.gameStatus = 1;
@@ -278,23 +261,23 @@ cc.Class({
 	},
 	initFallBalls(){
 		var size = this.ballsNum.getContentSize();
-		for(var i = 0;i < GlobalData.BallConfig.BallRow.length;i++){
-			var rowNum = GlobalData.BallConfig.BallRow[i];
-			for(var j = 0;j < rowNum;j++){
-				let rigidBall = null;
-				if (GlobalData.GameRunTime.BallNodesPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
-					rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
-				} else { // 如果没有空闲对象，也就是对象池中备用对象不够时，我们就用 cc.instantiate 重新创建
-					rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
+		for(let i = 0;i < GlobalData.BallConfig.BallRow.length;i++){
+			let rowNum = GlobalData.BallConfig.BallRow[i];
+			this.scheduleOnce(()=>{
+				for(var j = 0;j < rowNum;j++){
+					let rigidBall = GlobalData.GameRunTime.BallNodesPool.get();
+					if (rigidBall == null) {
+						rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
+					}
+					this.node.addChild(rigidBall);
+					let offset = j % 2 == 0 ? 1:-1;
+					rigidBall.y = this.ballsNum.y - (i * GlobalData.BallConfig.Radius * 2.2);
+					rigidBall.x = this.ballsNum.x + (GlobalData.BallConfig.Radius * (j + 1) * 1.2) * offset;
+					GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
+					GlobalData.GameRunTime.BallUnFallNum -= 1;
+					GlobalData.GameRunTime.BallAppearNum += 1;
 				}
-				this.node.addChild(rigidBall);
-				let offset = j % 2 == 0 ? 1:-1;
-				rigidBall.y = this.ballsNum.y - (i * GlobalData.BallConfig.Radius * 2.2);
-				rigidBall.x = this.ballsNum.x + (GlobalData.BallConfig.Radius * (j + 1) * 1.2) * offset;
-				GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
-				GlobalData.GameRunTime.BallUnFallNum -= 1;
-				GlobalData.GameRunTime.BallAppearNum += 1;
-			}
+			});
 		}
 	},
 	fallOneBall(){
@@ -303,6 +286,7 @@ cc.Class({
 			if (rigidBall == null) { // 通过 size 接口判断对象池中是否有空闲的对象
 				rigidBall = cc.instantiate(GlobalData.assets['RigidBaseBall']);
 			}
+			console.log('fallOneBall',rigidBall.uuid);
 			this.node.addChild(rigidBall);
 			rigidBall.setPosition(this.ballsNum.getPosition());
 			GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
@@ -322,7 +306,7 @@ cc.Class({
 		for(var key in GlobalData.GameRunTime.ContentBallsDic){
 			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
 			if(rigidBall != null){
-				rigidBall.getComponent('RigidBall').fallReset(true);
+				rigidBall.getComponent('RigidBall').fallReset();
 				GlobalData.GameRunTime.BallNodesPool.put(rigidBall);
 			}
 		}
@@ -346,12 +330,16 @@ cc.Class({
 		this.node.off(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
 	},
 	finishGame(){
-		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
+		return;
+		//console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
 		if(GlobalData.GameRunTime.CupAbledNum <= 1 || GlobalData.GameRunTime.BallAbledNum <= 0){
-			this.trickNode.getComponent('TrackManager').stopTrack();
-			GlobalData.game.audioManager.getComponent('AudioManager').stopGameBg();
-			GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
-			GlobalData.game.finishGame.getComponent("FinishGame").show();
+			if(GlobalData.GameInfoConfig.gameStatus != 2){
+				GlobalData.GameInfoConfig.gameStatus = 2;
+				this.trickNode.getComponent('TrackManager').stopTrack();
+				GlobalData.game.audioManager.getComponent('AudioManager').stopGameBg();
+				GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
+				GlobalData.game.finishGame.getComponent("FinishGame").show();
+			}
 		}
 	},
 	freshPropStatus(){
@@ -419,5 +407,45 @@ cc.Class({
 		this.scoreLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.TotalScore;
 		this.levelLabel.getComponent(cc.Label).string = GlobalData.GameRunTime.CircleLevel;
 		this.ballsNum.getComponent(cc.Label).string = GlobalData.GameRunTime.BallUnFallNum;
+		//绘制圆形
+		let winsize = cc.winSize;
+		this.ballGraphics.clear();
+		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
+		let vertsCount = this.particleSystem.GetParticleCount();
+		let posVerts = this.particleSystem.GetPositionBuffer();
+		let totalCount = 0;
+		//var box = this.rigidCup.getBoundingBox();
+		console.log(vertsCount);
+		for (let i = 0; i < vertsCount; i++) {
+			let bassPos1 = cc.v2(posVerts[i].x,posVerts[i].y);
+			bassPos1.x = (bassPos1.x * PTM_RATIO);
+			bassPos1.y = (bassPos1.y * PTM_RATIO);
+
+			this.ballGraphics.circle(bassPos1.x, bassPos1.y, GlobalData.BallConfig.Radius * PTM_RATIO);
+			//if(box.contains(bassPos1)){
+			//	totalCount += 1;
+			//}
+			//let radius1 = GlobalData.GameConfig.radius * PTM_RATIO * 1.2;
+			//gra.circle(bassPos1.x, bassPos1.y, radius1);
+			this.ballGraphics.fill();
+			this.ballGraphics.stroke();
+		}
+		return;
+		for(var key in GlobalData.GameRunTime.ContentBallsDic){
+			let ball = GlobalData.GameRunTime.ContentBallsDic[key];
+			if(ball == null){
+				continue;
+			}
+			let ballCom = ball.getComponent('RigidBall');
+			let color = ballCom.color;
+			let size = ball.getContentSize();
+			var colorMat = GlobalData.BallConfig.BallColorDic[color];
+			this.ballGraphics.strokeColor = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+			this.ballGraphics.fillColor = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
+			let bassPos1 = cc.v2(winsize.width/2 + ball.x,winsize.height/2 + ball.y);
+			this.ballGraphics.circle(bassPos1.x, bassPos1.y, size.width/2);
+			this.ballGraphics.fill();
+			this.ballGraphics.stroke();
+		}
 	}
 });

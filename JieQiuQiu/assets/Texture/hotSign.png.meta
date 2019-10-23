@@ -2,8 +2,8 @@
   "ver": "2.3.1",
   "uuid": "91b91bb4-9325-4da8-bea6-31e355b8e9ca",
   "type": "sprite",
-  "wrapMode": "clamp",
-  "filterMode": "bilinear",
+  "wrapMode": "repeat",
+  "filterMode": "point",
   "premultiplyAlpha": false,
   "platformSettings": {},
   "subMetas": {

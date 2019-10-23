@@ -82,14 +82,14 @@ let util = {
 		}
 	},
 	//复制对象，如果存在属性则更新
-	updateObj:function (newObj,obj,copyKeys) {
+	updateObj:function (newObj,obj,constKey) {
 		if(typeof obj !== 'object'){
 			console.log('not a object data');
 			return;
 		}
 		//如果是一个数组对象则直接复制
 		for(var key in obj){
-			if(copyKeys.includes(key)){
+			if(constKey == key){
 				newObj[key] = obj[key];
 			}else if(newObj[key] == null){
 				newObj[key] = obj[key];
@@ -98,7 +98,7 @@ let util = {
 			}else if(this.isArrayFn(obj[key])){
 				newObj[key] = obj[key];
 			}else if(typeof obj[key] == 'object'){
-				this.updateObj(newObj[key],obj[key],copyKeys);
+				this.updateObj(newObj[key],obj[key],constKey);
 			}
 		}
 	},
