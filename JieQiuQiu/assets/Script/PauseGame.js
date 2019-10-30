@@ -1,3 +1,4 @@
+var CupFactory = require('CupFactory');
 cc.Class({
     extends: cc.Component,
 
@@ -17,7 +18,7 @@ cc.Class({
 		GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.ButtonClick);
 		this.hidePause(()=>{
 			GlobalData.game.audioManager.getComponent('AudioManager').resumeGameBg();
-			GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').continueTrack();
+			CupFactory.continueTrack();
 		});
 	},
 	//重新开始按钮回调

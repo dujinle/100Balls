@@ -3,20 +3,12 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        physisContentClose:null,
 		openNode:cc.Node,
 		closeNode:cc.Node,
     },
     onLoad () {
 		this.openNode.active = false;
 		this.closeNode.active = true;
-		console.log('ContentCL');
-		var physicsChainColliders = this.node.getComponents(cc.PhysicsChainCollider);
-		for(var i = 0;i < physicsChainColliders.length;i++){
-			if(physicsChainColliders[i].tag == GlobalData.RigidBodyTag.contentClose){
-				this.physisContentClose = physicsChainColliders[i];
-			}
-		}
 	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
@@ -58,14 +50,8 @@ cc.Class({
 	openContent(){
 		this.openNode.active = true;
 		this.closeNode.active = false;
-		if(this.physisContentClose != null){
-			this.physisContentClose.enabled = false;
-		}
 	},
 	closeContent(){
-		if(this.physisContentClose != null){
-			this.physisContentClose.enabled = true;
-		}
 		this.openNode.active = false;
 		this.closeNode.active = true;
 	}

@@ -1,4 +1,5 @@
 var ThirdAPI = require('ThirdAPI');
+var BoxFactory = require('BoxFactory');
 var PropManager = require('PropManager');
 var util = require('util');
 cc.Class({
@@ -20,17 +21,37 @@ cc.Class({
 		hasSBA:0,
     },
     onLoad () {
-		this.balls = {};
+		if(this.rigidBody == null){
+			let userData = {level:0,name:this.node.uuid,type:GlobalData.RigidBodyTag.ball,node:this.node};
+			this.rigidBody = BoxFactory.CreatBall(userData,this.node.getPosition());
+		}
+		this.onReset();
+	},
+	onReset(){
 		this.level = 0;
 		this.ballNum = 0;
-		//杯子翻转标志
+		this.hasSBA = 0;
+		this.isAbled = true;
 		this.rotateFlag = false;
 		this.touchFloorMusic = false;
-		this.repairSpeedFlag = false;
 		this.cupScoreDic = {};
 		this.cupScoreNumDic = {};
-		this.hasSBA = 0;
+		if(this.animState != null){
+			this.animState.stop();
+		}
+		this.unschedule(this.checkAddCup);
 		this.setColor(this.level);
+		this.node.angle = 0;
+		var sbaNode = this.node.getChildByName('PropSBA');
+		if(sbaNode != null){
+			sbaNode.removeFromParent();
+			sbaNode.destroy();
+		}
+		for(var key in this.balls){
+			let ball = this.balls[key][0];
+			GlobalData.GameRunTime.BaseBallPool.put(ball);
+		}
+		this.balls = {};
 	},
 	setColor(level){
 		this.level = level;
@@ -234,6 +255,7 @@ cc.Class({
 	},
 	// 只在两个碰撞体开始接触时被调用一次
     onBeginContact: function (contact, selfCollider, otherCollider) {
+		return;
 		if(this.isAbled == false){
 			contact.disabled = true;
 			return;
@@ -361,4 +383,9 @@ cc.Class({
 			}
 		}
 	},
+	update(dt){
+		if(this.rigidBody != null){
+			this.rigidBody.SetPositionXY((this.node.x + cc.winSize.width/2) / BoxFactory._ptmRadio,(this.node.y + cc.winSize.height/2) / BoxFactory._ptmRadio);
+		}
+	}
 });

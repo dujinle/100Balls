@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "RigidBaseBall",
+    "_name": "ChainCup",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -40,8 +40,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 22,
-      "height": 22
+      "width": 96,
+      "height": 114
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -50,8 +50,8 @@
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": -121,
-      "y": 29.20000000000016,
+      "x": 267,
+      "y": 336,
       "z": 0
     },
     "_scale": {
@@ -69,26 +69,9 @@
     "_skewX": 0,
     "_skewY": 0,
     "_is3DNode": false,
-    "groupIndex": 0,
+    "groupIndex": 2,
     "_rotationX": 0,
     "_rotationY": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "6efe5iwd1dH26yV7/TMkDUa",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "level": 0,
-    "color": null,
-    "isInCup": false,
-    "isAbled": true,
-    "fallLine": false,
-    "touchCupMusic": false,
-    "touchFloorMusic": false,
     "_id": ""
   },
   {
@@ -107,7 +90,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "0cbe89f1-73bf-452c-b4df-519a6dcb0237"
+      "__uuid__": "00b39f44-3a03-4064-a337-a63c476dd0ab"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -126,14 +109,36 @@
     "_id": ""
   },
   {
+    "__type__": "a1836f2S0VOIKxyCt+qZsep",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "speed": 100,
+    "addSpeed": 0,
+    "width": 20,
+    "height": 20,
+    "balls": null,
+    "myId": 0,
+    "circleNum": 0,
+    "level": 0,
+    "ballNum": 0,
+    "color": null,
+    "isAbled": true,
+    "hasSBA": 0,
+    "_id": ""
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
     },
     "asset": {
-      "__uuid__": "b09e1adb-4042-45af-93f8-52589e9a603a"
+      "__id__": 0
     },
-    "fileId": "4fd+lqDltBv6sTG8H3jTJD",
+    "fileId": "03aqAwIIRPhLVQpDYqeufe",
     "sync": false
   }
 ]

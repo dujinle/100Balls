@@ -21,17 +21,15 @@ GlobalData = {
 		PropSBAScaleTime:0.3
 	},
 	RigidBodyTag:{
-		ball:0,
-		contentClose:1,
-		contentOpen:2,
-		floor:3,
-		contentLine:4,
-		cupInner:5,
-		cupLine:6,
-		cupFallRight:8,
-		cupFallLeft:9,
-		cupRightRotate:10,
-		cupLeftRotate:11
+		ball:2,		//小球的碰撞掩码
+		floor:4,	//地板的碰撞掩码
+		fallLine:8,	//小球下落的tenser碰撞掩码
+		huaDao:16,	//滑道的碰撞掩码
+		open:32,	//容器打开的碰撞掩码
+		content:64,	//容器壁的碰撞掩码
+		cup:128,	//杯子的碰撞掩码
+		cupFallLine:256,
+		remove:3200	//移除的标记
 	},
 	GameRunTime:{
 		ContentBallsDic:{},
@@ -68,15 +66,73 @@ GlobalData = {
 			Violet:[208,61,234],
 			Red:[245,27,68]
 		},
+		TurnDist:[0,100,762,1300,1962,2500],//根据距离控制方向
+		CheckDist:[400,1400,1962],//根据距离控制逻辑 是增加杯子 减少杯子 旋转杯子
 		BallInCupPos:[[0,-39],[22,-36],[-22,-36],[24,-14],[2,-17],[-20,-14],[26,8],[3,6],[-20,8],[29,30],[6,28],[-16,30]],
 		CupCreatNum:6,
-		CupMoveSpeed:0.15,
-		CupMoveMSpeed:0.5,//杯子的最大旋转速度，超过之后要进行衰减
-		CupMoveASpeed:1.5,
-		CupSpeedArate:0.15,//每三轮速度增加率
+		CupMoveSpeed:100,
+		CupMoveMSpeed:800,//杯子的最大旋转速度，超过之后要进行衰减
+		CupSpeedArate:0.1,//每三轮速度增加率
 		CupBigRate:0.15,
 		CupMoveDir:'right',
 		CupUpLevel:2
+	},
+	ContentConfig:{
+		left:[
+			new cc.v2( -147/32, 349/32),
+			new cc.v2( -187/32, 258/32),
+			new cc.v2( -170/32, 176/32),
+			new cc.v2( -99/32, 118/32),
+			new cc.v2( -27/32,97/32),
+			new cc.v2( -27/32,47/32)
+		],
+		right:[
+			new cc.v2( 147/32,346/32),
+			new cc.v2( 187/32,270/32),
+			new cc.v2( 170/32, 187.6/32),
+			new cc.v2( 113/32, 121/32),
+			new cc.v2( 30/32, 98/32),
+			new cc.v2( 29/32, 43/32)
+		],
+		fallLine:[
+			new cc.v2( -26/32, 10/32),
+			new cc.v2( 29/32, 10/32),
+		],
+		bottom:[
+			new cc.v2( -26/32,0/32),
+			new cc.v2( 29/32,0/32)
+		],
+		floor:[
+			new cc.v2( -320/32,-27/32),
+			new cc.v2( -89/32,0/32),
+			new cc.v2( 93/32,0/32),
+			new cc.v2( 320/32,-27/32)
+		],
+		inner:[
+			new cc.v2( -219/32,271/32),
+			new cc.v2( 219/32,271/32),
+			new cc.v2( 219/32,-271/32),
+			new cc.v2( -219/32,-271/32)
+		],
+		outer:[
+			new cc.v2( -319/32,391/32),
+			new cc.v2( 319/32,391/32),
+			new cc.v2( 319/32,-391/32),
+			new cc.v2( -319/32,-391/32)
+		],
+		cup:[
+			new cc.v2( -43/32,40/32),
+			new cc.v2( -33/32,-42/32),
+			new cc.v2( -21/32,-48/32),
+			new cc.v2( 0/32,-50/32),
+			new cc.v2( 21/32,-48/32),
+			new cc.v2( 33/32,-42/32),
+			new cc.v2( 43/32,40/32)
+		],
+		cupFallLine:[
+			new cc.v2( -40/32,38/32),
+			new cc.v2( 40/32,38/32)
+		]
 	},
 	BallConfig:{
 		BallColor:['Yellow','Green','Blue','Violet','Red'],
@@ -88,11 +144,12 @@ GlobalData = {
 			Red:[245,27,68]
 		},
 		BallRow:[10,8,6,4,2],
-		BallGravityScale:5,
 		BallUpLevel:1,
-		Radius:0.3,
+		Radius:0.34,
 		BallTotalNum:100,
-		BallGravityScale:10,
+		BallLinearDamping:0.8,
+		BallAngularDamping:0.1,
+		BallGravityScale:3,
 		BallPreFall:30
 	},
 	ScoreLevel:[1,2,3,4,6],

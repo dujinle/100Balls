@@ -1,4 +1,5 @@
 var ThirdAPI = require('ThirdAPI');
+var BoxFactory = require('BoxFactory');
 var util = require('util');
 cc.Class({
     extends: cc.Component,
@@ -25,6 +26,22 @@ cc.Class({
 		this.pauseGame.active = false;
 		this.propGame.active = false;
 		util.customScreenAdapt();
+		//打开物理引擎
+		//如果用了物理引擎，可以通过修改游戏帧率和检测的步长降低检测频率，提高性能。
+		this.pymanager = cc.director.getPhysicsManager();
+		this.pymanager.start();
+		this.pymanager.enabledAccumulator = true;	// 开启物理步长的设置
+		this.pymanager.FIXED_TIME_STEP = 1/30;		// 物理步长，默认 FIXED_TIME_STEP 是 1/60
+		this.pymanager.VELOCITY_ITERATIONS = 8;		// 每次更新物理系统处理速度的迭代次数，默认为 10
+		this.pymanager.POSITION_ITERATIONS = 8;		// 每次更新物理系统处理位置的迭代次数，默认为 10
+		BoxFactory.onInit(this.pymanager._world,cc.PhysicsManager.PTM_RATIO,cc.winSize);
+		/*
+		this.pymanager.debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
+		cc.PhysicsManager.DrawBits.e_pairBit |
+		cc.PhysicsManager.DrawBits.e_centerOfMassBit |
+		cc.PhysicsManager.DrawBits.e_jointBit |
+		cc.PhysicsManager.DrawBits.e_shapeBit;
+		*/
     },
 	loadDataSync(){
 		var self = this;

@@ -3,68 +3,49 @@
   "_name": "cupRightFallAnimation",
   "_objFlags": 0,
   "_native": "",
-  "_duration": 0.6666666666666666,
+  "_duration": 1.3666666666666667,
   "sample": 60,
   "speed": 1,
   "wrapMode": 1,
   "curveData": {
-    "props": {
-      "position": [
-        {
-          "frame": 0,
-          "value": [
-            -269,
-            -260
-          ]
-        },
-        {
-          "frame": 0.16666666666666666,
-          "value": [
-            -269,
-            -320
-          ]
-        },
-        {
-          "frame": 0.3333333333333333,
-          "value": [
-            -269,
-            -380
-          ]
-        },
-        {
-          "frame": 0.5,
-          "value": [
-            -269,
-            -450
+    "paths": {
+      "cup_bg": {
+        "props": {
+          "position": [
+            {
+              "frame": 0,
+              "value": [
+                -269,
+                -231,
+                0
+              ]
+            },
+            {
+              "frame": 1,
+              "value": [
+                -269,
+                -450,
+                0
+              ]
+            }
+          ],
+          "angle": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 1,
+              "value": 0
+            },
+            {
+              "frame": 1.3666666666666667,
+              "value": 30
+            }
           ]
         }
-      ],
-      "angle": [
-        {
-          "frame": 0,
-          "value": 0
-        },
-        {
-          "frame": 0.5,
-          "value": 0
-        },
-        {
-          "frame": 0.6666666666666666,
-          "value": 30
-        }
-      ]
+      }
     }
   },
-  "events": [
-    {
-      "frame": 0.5,
-      "func": "cupToFloor",
-      "params": []
-    },
-    {
-      "frame": 0.6666666666666666,
-      "func": "cupBreakFinish",
-      "params": []
-    }
-  ]
+  "events": []
 }

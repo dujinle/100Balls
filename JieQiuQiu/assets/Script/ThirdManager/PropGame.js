@@ -1,5 +1,6 @@
 var WxVideoAd = require('WxVideoAd');
 var ThirdAPI = require('ThirdAPI');
+var CupFactory = require('CupFactory');
 cc.Class({
     extends: cc.Component,
 
@@ -109,7 +110,7 @@ cc.Class({
 	},
 	cancel(){
 		this.node.active = false;
-		GlobalData.game.mainGame.getComponent('MainGame').trickNode.getComponent('TrackManager').continueTrack();
+		CupFactory.continueTrack();
 		if(GlobalData.GameRunTime.BallUnFallNum > 0){
 			GlobalData.game.mainGame.getComponent('MainGame').fallOneBall();
 		}
