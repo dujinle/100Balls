@@ -17,7 +17,7 @@ cc.Class({
 		ThirdAPI.loadLocalData();
 		this.loadDataSync();
 		GlobalData.game = this;
-		//ThirdAPI.loadCDNData();
+		ThirdAPI.loadCDNData();
 		this.startGame.getComponent('StartGame').onShow();
 		this.startGame.getComponent('StartGame').startBtn.getComponent(cc.Button).interactable = false;
 		this.mainGame.active = false;
