@@ -140,7 +140,7 @@ cc.Class({
 				}
 				return;
 			}
-			if(this.walk_to_next == 111 && this.checkFlag == 2){
+			if(this.walk_to_next == 117 && this.checkFlag == 2){
 				this.checkFlag = 3;
 				let tt = CupFactory._tsize.width / GlobalData.GameRunTime.CurrentSpeed;
 				this.topBody.SetActive(false);
@@ -150,9 +150,10 @@ cc.Class({
 						//把假的球球换成真的
 						this.splitOutBall();
 					})
-					.to(tt/2, { angle: 0 })
+					.to(tt/2, { angle: -360 })
 					.call(()=>{
 						this.checkFlag = 1;
+						this.node.angle = 0;
 						this.topBody.SetActive(true);
 					}).start()
 			}
@@ -212,7 +213,7 @@ cc.Class({
 		}else{
 			GlobalData.game.mainGame.getComponent('MainGame').fallOneBall();
 		}
-		GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = null;
+		GlobalData.GameRunTime.ContentBallsDic[ball.name] = null;
 		ballCom.removeTrue(false);
 	},
 	//杯子停止运动
@@ -258,7 +259,7 @@ cc.Class({
 		}
 	},
 	setCupScoreLabel(level){
-		var self = this;
+		let runFlag = false;
 		if(this.cupScoreDic[level] == null){
 			var scoreLabel = GlobalData.GameRunTime.UpScorePool.get();
 			if(scoreLabel == null){
@@ -272,16 +273,18 @@ cc.Class({
 			this.node.addChild(scoreLabel);
 			scoreLabel.setPosition(cc.v2(0,this.size.height/2 + scoreSize.height/2 + 10));
 			this.cupScoreNumDic[level] = 0;
-		}
-		//对label 进行定位 level小的 在下面
-		var idx = 0;
-		for(var i = 0;i < GlobalData.BallConfig.BallColor.length;i++){
-			var scoreLabel = this.cupScoreDic[i];
-			if(scoreLabel != null){
-				var scoreSize = scoreLabel.getContentSize();
-				scoreLabel.setPosition(cc.v2(0,this.size.height/2 + (scoreSize.height/2 + 10) * (idx + 1)));
-				idx = idx + 1;
+		
+			//对label 进行定位 level小的 在下面
+			var idx = 0;
+			for(var i = 0;i < GlobalData.BallConfig.BallColor.length;i++){
+				var scoreLabel = this.cupScoreDic[i];
+				if(scoreLabel != null){
+					var scoreSize = scoreLabel.getContentSize();
+					scoreLabel.setPosition(cc.v2(0,this.size.height/2 + (scoreSize.height/2 + 10) * (idx + 1)));
+					idx = idx + 1;
+				}
 			}
+			runFlag = true;
 		}
 		var score = GlobalData.ScoreLevel[level] > GlobalData.ScoreLevel[this.level] ? GlobalData.ScoreLevel[level]:GlobalData.ScoreLevel[this.level];
 		this.cupScoreNumDic[level] += score;
@@ -292,12 +295,14 @@ cc.Class({
 			GlobalData.GameInfoConfig.maxLevel = GlobalData.GameRunTime.CircleLevel;
 			ThirdAPI.updataGameInfo();
 		}
-		this.cupScoreDic[level].runAction(cc.sequence(cc.fadeIn(0.1),cc.fadeOut(1.5),cc.callFunc(function(){
-			if(self.cupScoreDic[level] != null){
-				GlobalData.GameRunTime.UpScorePool.put(self.cupScoreDic[level]);
-				self.cupScoreDic[level] = null;
-			}
-		},this)));
+		if(runFlag == true){
+			this.cupScoreDic[level].runAction(cc.sequence(cc.fadeIn(0.1),cc.fadeOut(1.5),cc.callFunc(()=>{
+				if(this.cupScoreDic[level] != null){
+					GlobalData.GameRunTime.UpScorePool.put(this.cupScoreDic[level]);
+					this.cupScoreDic[level] = null;
+				}
+			},this)));
+		}
 	},
 	updateCircleNum(){
 		this.circleNum += 1;
