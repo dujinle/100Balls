@@ -59,7 +59,8 @@ cc.Class({
 		}else if(this.openType == "PropAV"){
 			console.log(this.openType);
 			this.AVSuccessCb = function(arg){
-				GlobalData.game.getComponent('MainGame').openSBA(propKey);
+				this.node.active = false;
+				GlobalData.game.mainGame.getComponent('MainGame').openSBA(propKey);
 			}.bind(this);
 			this.AVFailedCb = function(arg){
 				if(arg == 'cancle'){
@@ -76,7 +77,8 @@ cc.Class({
 		var propKey = this.propKey;
 		if(this.iscallBack == false){
 			console.log(type, shareTicket, arg);
-			GlobalData.game.getComponent('MainGame').openSBA(propKey);
+			this.node.active = false;
+			GlobalData.game.mainGame.getComponent('MainGame').openSBA(propKey);
 		}
 		this.iscallBack = true;
 	},

@@ -45,7 +45,7 @@ cc.PhysicsContactListener.prototype.BeginContact = function (contact) {
 	}
 	//小球碰到了 杯子口 进入杯子了
 	if(dataA.type + dataB.type == (GlobalData.RigidBodyTag.ball + GlobalData.RigidBodyTag.cupFallLine)){
-		console.log('node:',dataA.name,dataB.name,'进入杯子了');
+		//console.log('node:',dataA.name,dataB.name,'进入杯子了');
 		contact.SetEnabled(false);
 		if(dataA.type == GlobalData.RigidBodyTag.cupFallLine){
 			dataA.node.getComponent('RigidCup').eatBall(dataB);

@@ -33,15 +33,27 @@ cc.Class({
 		this.node.color = new cc.Color(colorMat[0],colorMat[1],colorMat[2]);
 	},
 	//销毁节点及数据
-	removeTrue(){
-		if(GlobalData.GameRunTime.ContentBallsDic[this.node.uuid] != null){
-			GlobalData.GameRunTime.ContentBallsDic[this.node.uuid]  = null;
+	removeTrue(delayFlag){
+		if(this.node == null){
+			return;
 		}
-		if(this.rigidBody != null){
-			BoxFactory.RemoveBody(this.rigidBody);
+		if(delayFlag == true){
+			this.scheduleOnce(()=>{
+				if(this.rigidBody != null){
+					BoxFactory.RemoveBody(this.rigidBody);
+				}
+				this.node.removeFromParent();
+				this.node.destroy();
+			},0.5);
+		}else{
+			this.scheduleOnce(()=>{
+				if(this.rigidBody != null){
+					BoxFactory.RemoveBody(this.rigidBody);
+				}
+				this.node.removeFromParent();
+				this.node.destroy();
+			},0);
 		}
-		this.node.removeFromParent();
-		this.node.destroy();
 	},
 	fallRemove(){
 		var self = this;

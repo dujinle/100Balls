@@ -176,12 +176,13 @@ cc.Class({
 				}
 				let rigidBallCom = rigidBall.getComponent('RigidBall');
 				rigidBallCom.setColor(level);
-				let pos = util.getPosFromNode(ball,GlobalData.game.mainGame);
+				let pos = util.getPosFromNode(this.node,GlobalData.game.mainGame);
 				rigidBall.setPosition(cc.v2(pos.x,pos.y - this.size.height/2));
 				GlobalData.game.mainGame.addChild(rigidBall);
 				GlobalData.GameRunTime.BaseBallPool.put(ball);
 				GlobalData.GameRunTime.ContentBallsDic[rigidBall.uuid] = rigidBall;
-			},0);
+			},this.ballNum * 0.01);
+			this.ballNum -= 1;
 		}
 		this.ballNum = 0;
 		this.balls = {};
@@ -211,9 +212,8 @@ cc.Class({
 		}else{
 			GlobalData.game.mainGame.getComponent('MainGame').fallOneBall();
 		}
-		this.scheduleOnce(()=>{
-			ballCom.removeTrue();
-		},0);
+		GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = null;
+		ballCom.removeTrue(false);
 	},
 	//杯子停止运动
 	stopMove(){
@@ -243,11 +243,6 @@ cc.Class({
 	openSba(){
 		//杯子中有宝箱 打开它把有惊喜也许
 		if(this.hasSBA == 1){
-			/*
-			if(GlobalData.GameInfoConfig.gameStatus == 1){
-				GlobalData.game.mainGame.getComponent('MainGame').closeContent();
-			}
-			*/
 			var propSba = PropManager.getSBA();
 			if(propSba != null){
 				var split = propSba.split('_');
@@ -308,9 +303,23 @@ cc.Class({
 		this.circleNum += 1;
 		//如果当前杯子的圈数大于游戏的圈数则进行判断是否更新圈数
 		if(this.circleNum > GlobalData.GameRunTime.CircleLevel){
-			GlobalData.GameRunTime.CircleLevel += 1;
-			GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.LevelBell);
-			CupFactory.updateCircle();
+			//递进的方式处理圈数，避免总是一个杯子控制圈数，每个杯子都有一次机会
+			let uid = GlobalData.GameRunTime.CircleLevel % GlobalData.GameRunTime.CupAbledNum;
+			for(let key in GlobalData.GameRunTime.CupNodesDic){
+				let cup = GlobalData.GameRunTime.CupNodesDic[key];
+				if(cup == null){
+					continue;
+				}
+				if(uid == 0){
+					if(cup.uuid == this.node.uuid){
+						GlobalData.GameRunTime.CircleLevel += 1;
+						GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.LevelBell);
+						CupFactory.updateCircle();
+					}
+					break;
+				}
+				uid = uid - 1;
+			}
 		}
 	}
 });

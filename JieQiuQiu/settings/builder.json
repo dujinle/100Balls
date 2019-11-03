@@ -16,8 +16,7 @@
   },
   "encryptJs": true,
   "excludeScenes": [
-    "2c6fd374-af4c-42ae-936d-5af53ed6faca",
-    "96caa74b-1e16-44d9-88ff-28a76d8b73bc"
+    "2c6fd374-af4c-42ae-936d-5af53ed6faca"
   ],
   "fb-instant-games": {},
   "includeSDKBox": false,

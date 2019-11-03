@@ -39,7 +39,7 @@ cc.Class({
 		this.returnGame.runAction(returnGameScale);
 		var gotoHomeScale = cc.scaleTo(GlobalData.TimeActionParam.PauseGameMoveTime,1);
 		this.gotoHomeButton.runAction(gotoHomeScale);
-		this.initInnerChain(0);
+		//this.initInnerChain(0);
 	},
 	initInnerChain(time){
 		var self = this;

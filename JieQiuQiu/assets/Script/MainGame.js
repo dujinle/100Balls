@@ -13,14 +13,14 @@ cc.Class({
 		floorNode:cc.Node,
 		scoreLabel:cc.Node,
 		levelLabel:cc.Node,
-		buttonBig:cc.Node,
+		bottomBody:null,
 		ballContent:cc.Node,
 		contentOpen:cc.Node,
 		contentClose:cc.Node,
 		buttonUpLevel:cc.Node,
     },
 	onLoad(){
-		this.ballGraphics = this.node.getComponent(cc.Graphics);
+		this.bottomBody = null;
 	},
 	//第一次进入游戏初始化数据
 	initGame(){
@@ -28,7 +28,7 @@ cc.Class({
 		this.node.active = true;
 		CupFactory.onInit(this,BoxFactory._world,BoxFactory._ptmRadio,this.trickNode.y);
 		//创建杯子容器
-		{
+		if(this.bottomBody == null){
 			BoxFactory.CreatContentBody(this.ballContent.getPosition());
 			//底部分开来 制作，因为可以打开的
 			let closeSize = this.contentClose.getContentSize();
@@ -44,9 +44,11 @@ cc.Class({
 		if(GlobalData.GameRunTime.BallNodesPool == null){
 			GlobalData.GameRunTime.BallNodesPool = new cc.NodePool();
 		}
+		/*
 		if(GlobalData.GameRunTime.CupNodesPool == null){
 			GlobalData.GameRunTime.CupNodesPool = new cc.NodePool();
 		}
+		*/
 		if(GlobalData.GameRunTime.UpScorePool == null){
 			GlobalData.GameRunTime.UpScorePool = new cc.NodePool();
 		}
@@ -74,7 +76,6 @@ cc.Class({
 		GlobalData.game.audioManager.getComponent('AudioManager').playGameBg();
 		GlobalData.GameInfoConfig.gameStatus = 0;
 		//this.setBannerAD();
-		//this.initParticle();
 		this.node.on(cc.Node.EventType.TOUCH_START,this.openContent,this);
 		this.node.on(cc.Node.EventType.TOUCH_END,this.closeContent,this);
 		this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
@@ -103,7 +104,7 @@ cc.Class({
 		GlobalData.game.audioManager.getComponent("AudioManager").play(GlobalData.AudioManager.ButtonClick);
 		if(customEventData == "P_show"){
 			GlobalData.game.audioManager.getComponent("AudioManager").pauseGameBg();
-			this.trickNode.getComponent('TrackManager').stopTrack();
+			CupFactory.stopTrack();
 			GlobalData.game.pauseGame.getComponent('PauseGame').showPause();
 		}else if(customEventData == "C_Big"){
 			var propType = PropManager.getProp('PropBig');
@@ -111,7 +112,7 @@ cc.Class({
 				if(GlobalData.GameInfoConfig.gameStatus == 1){
 					this.closeContent();
 				}
-				this.trickNode.getComponent('TrackManager').stopTrack();
+				CupFactory.stopTrack();
 				this.shareOrAV('PropBig',propType);
 			}
 		}else if(customEventData == "C_UpLevel"){
@@ -120,7 +121,7 @@ cc.Class({
 				if(GlobalData.GameInfoConfig.gameStatus == 1){
 					this.closeContent();
 				}
-				this.trickNode.getComponent('TrackManager').stopTrack();
+				CupFactory.stopTrack();
 				this.shareOrAV('PropUpLevel',propType);
 			}
 		}
@@ -132,10 +133,10 @@ cc.Class({
 				if(this.iscallBack == false){
 					CupFactory.continueTrack();
 					if(prop == 'PropBig'){
-						this.trickNode.getComponent('TrackManager').bigOneCup();
+						CupFactory.bigOneCup();
 						this.freshPropStatus();
 					}else if(prop == 'PropUpLevel'){
-						this.trickNode.getComponent('TrackManager').upLevelCup(false);
+						CupFactory.upLevelCup(false);
 						this.freshPropStatus();
 					}
 				}
@@ -164,10 +165,10 @@ cc.Class({
 			this.AVSuccessCb = function(arg){
 				CupFactory.continueTrack();
 				if(prop == 'PropBig'){
-					this.trickNode.getComponent('TrackManager').bigOneCup();
+					CupFactory.bigOneCup();
 					this.freshPropStatus();
 				}else if(prop == 'PropUpLevel'){
-					this.trickNode.getComponent('TrackManager').upLevelCup(false);
+					CupFactory.upLevelCup(false);
 					this.freshPropStatus();
 				}
 			}.bind(this);
@@ -216,10 +217,10 @@ cc.Class({
 		var self = this;
 		if(prop == 'PropBig'){
 			CupFactory.continueTrack();
-			this.trickNode.getComponent('TrackManager').bigOneCup(true);
+			CupFactory.bigOneCup(true);
 		}else if(prop == 'PropUpLevel'){
 			CupFactory.continueTrack();
-			this.trickNode.getComponent('TrackManager').upLevelCup(true);
+			CupFactory.upLevelCup(true);
 		}else if(prop == 'PropAddBall'){
 			var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
 			this.node.addChild(sbaNode);
@@ -247,14 +248,14 @@ cc.Class({
 			this.node.addChild(sbaNode);
 			sbaNode.setPosition(cc.v2(0,0));
 			var finishFunc = cc.callFunc(function(){
+				GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+				GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
 				sbaNode.removeFromParent();
 				sbaNode.destroy();
 			},this);
 			let pos = this.ballsNum.getPosition();
 			sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),finishFunc));
 			setTimeout(function(){
-				GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
-				GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
 				if(GlobalData.GameRunTime.BallUnFallNum > 0){
 					self.fallOneBall();
 				}
@@ -304,13 +305,10 @@ cc.Class({
 		var data = fixture.GetUserData();
 		var ball = data.node;
 		if(GlobalData.GameRunTime.ContentBallsDic[ball.uuid] != null){
+			GlobalData.GameRunTime.ContentBallsDic[ball.uuid] = null;
 			GlobalData.GameRunTime.BallAbledNum -= 1;
 			GlobalData.GameRunTime.BallAppearNum -= 1;
-			this.scheduleOnce(()=>{
-				if(GlobalData.GameRunTime.ContentBallsDic[ball.uuid] != null){
-					ball.getComponent('RigidBall').removeTrue();
-				}
-			},0.5);
+			ball.getComponent('RigidBall').removeTrue(true);
 		}
 		if(GlobalData.GameRunTime.BallAbledNum == GlobalData.cdnGameConfig.PropRelive){
 			var openType = PropManager.getPropRelive();
@@ -335,8 +333,9 @@ cc.Class({
 		for(var key in GlobalData.GameRunTime.ContentBallsDic){
 			var rigidBall = GlobalData.GameRunTime.ContentBallsDic[key];
 			if(rigidBall != null){
-				rigidBall.getComponent('RigidBall').removeTrue();
+				rigidBall.getComponent('RigidBall').removeTrue(false);
 			}
+			GlobalData.GameRunTime.ContentBallsDic[key] = null;
 		}
 		CupFactory.removeAllCups();
 		//this.rigidBallPool.clear();
@@ -358,42 +357,22 @@ cc.Class({
 		this.node.off(cc.Node.EventType.TOUCH_CANCEL,this.closeContent,this);
 	},
 	finishGame(){
-		//console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
-		if(GlobalData.GameRunTime.CupAbledNum <= 1 || GlobalData.GameRunTime.BallAbledNum <= 0){
-			if(GlobalData.GameInfoConfig.gameStatus != 2){
-				GlobalData.GameInfoConfig.gameStatus = 2;
-				CupFactory.stopTrack();
-				GlobalData.game.audioManager.getComponent('AudioManager').stopGameBg();
-				GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
-				GlobalData.game.finishGame.getComponent("FinishGame").show();
-			}
+		if(GlobalData.GameRunTime.BallAbledNum > 0 && GlobalData.GameRunTime.CupAbledNum > 1){
+			return;
+		}
+		if(GlobalData.GameInfoConfig.addCupNum < GlobalData.CupConfig.CupCreatNum){
+			return;
+		}
+		console.log(GlobalData.GameRunTime.CupAbledNum,GlobalData.GameRunTime.BallAbledNum);
+		if(GlobalData.GameInfoConfig.gameStatus != 2){
+			GlobalData.GameInfoConfig.gameStatus = 2;
+			CupFactory.stopTrack();
+			GlobalData.game.audioManager.getComponent('AudioManager').stopGameBg();
+			GlobalData.game.audioManager.getComponent('AudioManager').play(GlobalData.AudioManager.GameFinish);
+			GlobalData.game.finishGame.getComponent("FinishGame").show();
 		}
 	},
 	freshPropStatus(){
-		if(GlobalData.cdnPropParam.PropUnLock['PropBig'] <= GlobalData.GameInfoConfig.juNum){
-			var propBig = PropManager.getProp('PropBig');
-			if(propBig == null){
-				var numLabel = this.buttonBig.getChildByName("numLabel");
-				numLabel.active = true;
-				numLabel.getComponent(cc.Label).string = 'x0';
-				var openSprite = this.buttonBig.getChildByName("openSprite");
-				openSprite.active = false;
-			}else{
-				var numLabel = this.buttonBig.getChildByName("numLabel");
-				numLabel.active = false;
-				var openSprite = this.buttonBig.getChildByName("openSprite");
-				if(propBig == 'PropShare'){
-					openSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['shareProp'];
-				}else if(propBig == 'PropAV'){
-					openSprite.getComponent(cc.Sprite).spriteFrame = GlobalData.assets['videoProp'];
-				}
-				openSprite.active = true;
-			}
-			this.buttonBig.active = true;
-		}else{
-			this.buttonBig.active = false;
-		}
-		
 		if(GlobalData.cdnPropParam.PropUnLock['PropUpLevel'] <= GlobalData.GameInfoConfig.juNum){
 			var propUpLevel = PropManager.getProp('PropUpLevel');
 			if(propUpLevel == null){
