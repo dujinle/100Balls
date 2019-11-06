@@ -230,7 +230,7 @@ cc.Class({
 				sbaNode.destroy();
 			},this);
 			let pos = this.ballsNum.getPosition();
-			sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),cc.fadeOut(),finishFunc));
+			sbaNode.runAction(cc.sequence(cc.moveTo(0.5,pos),cc.fadeOut(),finishFunc));
 			GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
 			GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
 			setTimeout(function(){	
@@ -254,7 +254,7 @@ cc.Class({
 				sbaNode.destroy();
 			},this);
 			let pos = this.ballsNum.getPosition();
-			sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),finishFunc));
+			sbaNode.runAction(cc.sequence(cc.moveTo(0.5,pos),finishFunc));
 			setTimeout(function(){
 				if(GlobalData.GameRunTime.BallUnFallNum > 0){
 					self.fallOneBall();

@@ -22,6 +22,7 @@ cc.Class({
 	},
 	initLoad(openType,prop){
 		var self = this;
+		this.bgContext.scale = 0.2;
 		this.openType = openType;
 		this.propKey = prop;
 		this.node.active = true;
