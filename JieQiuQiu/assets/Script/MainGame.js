@@ -231,9 +231,9 @@ cc.Class({
 			},this);
 			let pos = this.ballsNum.getPosition();
 			sbaNode.runAction(cc.sequence(cc.moveTo(1,pos),cc.fadeOut(),finishFunc));
-			setTimeout(function(){
-				GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
-				GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+			GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+			GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+			setTimeout(function(){	
 				if(GlobalData.GameRunTime.BallUnFallNum > 0){
 					self.fallOneBall();
 				}
@@ -247,9 +247,9 @@ cc.Class({
 			var sbaNode = cc.instantiate(GlobalData.assets['PropSBA']);
 			this.node.addChild(sbaNode);
 			sbaNode.setPosition(cc.v2(0,0));
-			var finishFunc = cc.callFunc(function(){
-				GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
-				GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+			GlobalData.GameRunTime.BallUnFallNum += GlobalData.cdnGameConfig.PropAddNum;
+			GlobalData.GameRunTime.BallAbledNum += GlobalData.cdnGameConfig.PropAddNum;
+			var finishFunc = cc.callFunc(function(){	
 				sbaNode.removeFromParent();
 				sbaNode.destroy();
 			},this);
@@ -310,7 +310,8 @@ cc.Class({
 			GlobalData.GameRunTime.BallAppearNum -= 1;
 			ball.getComponent('RigidBall').removeTrue(true);
 		}
-		if(GlobalData.GameRunTime.BallAbledNum == GlobalData.cdnGameConfig.PropRelive){
+		if(GlobalData.GameRunTime.BallAbledNum <= GlobalData.cdnGameConfig.PropRelive
+			&& GlobalData.GameInfoConfig.PropRelive <= 0){
 			var openType = PropManager.getPropRelive();
 			if(openType != null){
 				CupFactory.stopTrack();

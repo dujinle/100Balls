@@ -227,8 +227,12 @@ cc.Class({
 		this.node.resumeAllActions();
 	},
 	removeMySelf(){
-		BoxFactory.RemoveBody(this.rigidBody);
-		BoxFactory.RemoveBody(this.topBody);
+		if(this.rigidBody != null){
+			BoxFactory.RemoveBody(this.rigidBody);
+		}
+		if(this.topBody != null){
+			BoxFactory.RemoveBody(this.topBody);
+		}
 		this.node.removeFromParent();
 		this.node.destroy();
 	},
